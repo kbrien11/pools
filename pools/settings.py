@@ -128,7 +128,7 @@ PASSWORD_HASHERS = [
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = '587'
 EMAIL_HOST_USER = 'kbrien11@gmail.com'
-EMAIL_HOST_PASSWORD = "gsxyrmglfkrrsban"
+EMAIL_HOST_PASSWORD = "krp10?!@56"
 EMAIL_USE_TLS = True
 
 # Internationalization

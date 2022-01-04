@@ -134,14 +134,14 @@ def create_board(request,token):
             else:
                 print(Response(status = status.HTTP_400_BAD_REQUEST))
 
-#         send_mail(
-#             'league created',
-#             'Hi {}, the code to join the leauge is {}'.format(
-#                 user, board.code),
-#             "kbrien11@gmail.com",
-#             [data.data['email']],
-#             fail_silently=False
-#         )
+        send_mail(
+            'league created',
+            'Hi {}, the code to join the leauge is {}'.format(
+                user, board.code),
+            "kbrien11@gmail.com",
+            [data.data['email']],
+            fail_silently=False
+        )
         return Response({"pairs":total_pairs,"board_nuber":board.id,"winningNumbers":winners_list,"losingNumbers":losers_list,"code":board.code})
 
 @api_view(['POST'])

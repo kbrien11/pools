@@ -10,12 +10,11 @@ import numpy as np
 import time,datetime, math
 from collections import defaultdict
 import os
+
 import environ
 
-env = environ.Env()
-environ.Env.read_env()
 
-CHROME_DRIVER = env('CHROME_DRIVER')
+CHROME_DRIVER = os.environ.get("CHROME_DRIVER")
 
 def open_link():
     '''loads headless invisible browser on your machine and opens CBS NFL scores page.

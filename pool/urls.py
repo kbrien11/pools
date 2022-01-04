@@ -20,7 +20,6 @@ urlpatterns = [
     path('validate_code/<code>',views.validate_code),
     path('get_user_name/<pk>',views.get_user_name),
     path('leaderboard/<board_pk>',views.leaderboard),
-    path('share_code',views.share_code),
     path('marchMadness/<board_number>', views.addToMarchMadnessTable),
     path('validate_creator/<token>/<board_number>', views.validate_creator)
 

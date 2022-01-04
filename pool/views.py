@@ -463,7 +463,7 @@ stop_run_continuously = run_continuously()
 
 # schedule.every(5).seconds.until("2021-12-28 11:45").do(get_print)
 # schedule.every(30).seconds.until("2021-12-28 11:55").do(send_email_to_winners)
-schedule.every().tuesday.at("15:00").do(addMoneyToWinners)
+schedule.every().tuesday.at("15:30").do(addMoneyToWinners)
 
 
 # Do some other things...

@@ -81,7 +81,11 @@ WSGI_APPLICATION = 'pools.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-         'NAME': os.environ.get("DATABASE_URL")
+        'NAME': "d3eeh5so7938s7",
+        'HOST':"ec2-54-174-43-13.compute-1.amazonaws.com",
+        'USER':"ewzwhcpdnijprs",
+        'PASSWORD':"c3d69b46a35f9d003796a55aa391a1ff08fc8f7d9c97194fd5169cf3ae01fffa",
+        'PORT':'5432'
     },
 }
 

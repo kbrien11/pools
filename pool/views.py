@@ -36,13 +36,13 @@ def createUser(request):
             serializer.save()
             user = User.objects.filter(username=serializer.data['username']).first()
             token = Token.objects.get(user=user)
-            send_mail(
-                'account creation',
-                'hi {} thanks for signing up for pool! Please log in and use our app to choose boxes or create a league'.format(serializer.data['first_name']),
-                'kbrien11@gmail.com',
-                [serializer.data['email']],
-                fail_silently=False
-            )
+#             send_mail(
+#                 'account creation',
+#                 'hi {} thanks for signing up for pool! Please log in and use our app to choose boxes or create a league'.format(serializer.data['first_name']),
+#                 'kbrien11@gmail.com',
+#                 [serializer.data['email']],
+#                 fail_silently=False
+#             )
             return Response({"data":serializer.data, "token":token.key})
         else:
             return Response({"error":"errro"})
@@ -134,14 +134,14 @@ def create_board(request,token):
             else:
                 print(Response(status = status.HTTP_400_BAD_REQUEST))
 
-        send_mail(
-            'league created',
-            'Hi {}, the code to join the leauge is {}'.format(
-                user, board.code),
-            "kbrien11@gmail.com",
-            [data.data['email']],
-            fail_silently=False
-        )
+#         send_mail(
+#             'league created',
+#             'Hi {}, the code to join the leauge is {}'.format(
+#                 user, board.code),
+#             "kbrien11@gmail.com",
+#             [data.data['email']],
+#             fail_silently=False
+#         )
         return Response({"pairs":total_pairs,"board_nuber":board.id,"winningNumbers":winners_list,"losingNumbers":losers_list,"code":board.code})
 
 @api_view(['POST'])
@@ -203,13 +203,13 @@ def addUserToBox(request,token,box_pk,board_number):
                 else:
                     print("box taken already")
 
-    send_mail(
-        'Chosen Boxes',
-        'Hi {} thank you for choosing {} box(es). Goodluck!'.format(data.data['first_name'],str(count)),
-        'kbrien11@gmail.com',
-        [data.data['email']],
-        fail_silently=False
-    )
+#     send_mail(
+#         'Chosen Boxes',
+#         'Hi {} thank you for choosing {} box(es). Goodluck!'.format(data.data['first_name'],str(count)),
+#         'kbrien11@gmail.com',
+#         [data.data['email']],
+#         fail_silently=False
+#     )
     return Response({"data":serializer.data})
 
 
@@ -357,68 +357,70 @@ def validate_creator(request,token,board_number):
     else:
         return Response({"error2": "error2"})
 
-@api_view(['POST'])
-def share_code(request):
-    board_pk = request.data.get('board_pk')
-    email = request.data.get('email')
-    print(board_pk,email)
-    board = Board.objects.filter(id=board_pk).first()
-    board_ser = BoardSerializer(board,many=False)
-    code = board_ser.data['code']
-    print(code)
-    user_to_email = User.objects.filter(email=email).first()
-    user_ser = UserSerializer(user_to_email,many=False)
-    if email:
-        if code:
-           if user_ser:
-                send_mail(
-                    'Code to join my leage',
-                    'Hi {}, the code to join the leage is {}'.format(
-                        user_ser .data['username'], code),
-                    "kbrien11@gmail.com",
-                    [email],
-                    fail_silently=False
-                )
-           else:
-                send_mail(
-                    'Code to join my leage',
-                    'Hi there, the code to join the league is {}'.format(
-                         code),
-                    "kbrien11@gmail.com",
-                    [email],
-                    fail_silently=False
-                )
-        else:
-            print("code error")
-    return Response({"data":code})
+# @api_view(['POST'])
+# def share_code(request):
+#     board_pk = request.data.get('board_pk')
+#     email = request.data.get('email')
+#     print(board_pk,email)
+#     board = Board.objects.filter(id=board_pk).first()
+#     board_ser = BoardSerializer(board,many=False)
+#     code = board_ser.data['code']
+#     print(code)
+#     user_to_email = User.objects.filter(email=email).first()
+#     user_ser = UserSerializer(user_to_email,many=False)
+#     if email:
+#         if code:
+#            if user_ser:
+# #                 send_mail(
+# #                     'Code to join my leage',
+# #                     'Hi {}, the code to join the leage is {}'.format(
+# #                         user_ser .data['username'], code),
+# #                     "kbrien11@gmail.com",
+# #                     [email],
+# #                     fail_silently=False
+# #                 )
+#                 print("hi")
+#            else:
+#                  print("hi")
+# #                 send_mail(
+# #                     'Code to join my leage',
+# #                     'Hi there, the code to join the league is {}'.format(
+# #                          code),
+# #                     "kbrien11@gmail.com",
+# #                     [email],
+# #                     fail_silently=False
+# #                 )
+#         else:
+#             print("code error")
+#     return Response({"data":code})
 
 
-def send_email_to_winners():
-    day = date.today()
-    check_date = ["2021-12-29","2021-12-30","2021-12-31","2021-12-28"]
-    if str(day) in check_date:
-        users = Winnings.objects.all()
-        ser = WinningsSerializer(users,many=True)
-        print("sending email script")
-        for i in ser.data:
-            email_user = User.objects.filter(username=i['username']).first()
-            email_ser = UserSerializer(email_user,many=False)
-            if email_ser.data['email']:
-                print(email_ser.data['email'])
-                send_mail(
-                    'Box hit',
-                    'Hi {}, your total balance/winning is {}'.format(
-                        email_ser.data['username'], i['balance']),
-                    "kbrien11@gmail.com",
-                    ["moneyman92m@yahoo.com"],
-                    # [email_ser.data['email']],
-                    fail_silently=False
-                )
-            else:
-                print(i['balance'],i['username'])
-    else:
-        print("wrong day")
-        return
+# def send_email_to_winners():
+#     day = date.today()
+#     check_date = ["2021-12-29","2021-12-30","2021-12-31","2021-12-28"]
+#     if str(day) in check_date:
+#         users = Winnings.objects.all()
+#         ser = WinningsSerializer(users,many=True)
+#         print("sending email script")
+#         for i in ser.data:
+#             email_user = User.objects.filter(username=i['username']).first()
+#             email_ser = UserSerializer(email_user,many=False)
+#             if email_ser.data['email']:
+#                 print(email_ser.data['email'])
+#                 send_mail(
+#                     'Box hit',
+#                     'Hi {}, your total balance/winning is {}'.format(
+#                         email_ser.data['username'], i['balance']),
+#                     "kbrien11@gmail.com",
+#                     ["moneyman92m@yahoo.com"],
+#                     # [email_ser.data['email']],
+#                     fail_silently=False
+#                 )
+#             else:
+#                 print(i['balance'],i['username'])
+#     else:
+#         print("wrong day")
+#         return
 
 
 def get_print():

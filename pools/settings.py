@@ -125,11 +125,11 @@ PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
 ]
 
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = '587'
-# EMAIL_HOST_USER = 'kbrien11@gmail.com'
-# EMAIL_HOST_PASSWORD = "gsxyrmglfkrrsban"
-# EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = '587'
+EMAIL_HOST_USER = 'kbrien11@gmail.com'
+EMAIL_HOST_PASSWORD = "gsxyrmglfkrrsban"
+EMAIL_USE_TLS = True
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/

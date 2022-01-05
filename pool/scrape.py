@@ -17,6 +17,7 @@ import environ
 CHROME_DRIVER = os.environ.get("CHROME_DRIVER")
 
 def open_link():
+    print("starting scaper")
     '''loads headless invisible browser on your machine and opens CBS NFL scores page.
         Returns: a google chrome browser'''
     opts = Options()
@@ -32,6 +33,7 @@ def open_link():
 
 
 def pull_scores(web):
+    print("starting scaper")
     gms = web.find_elements_by_xpath('//div[contains(@id,"game")]')
     '''Use open_link function return value to populate correct web browser instance for score data'''
     num_names = {}

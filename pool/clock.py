@@ -7,7 +7,7 @@ sched = BackgroundScheduler()
 
 
 
-@sched.scheduled_job(addMoneyToWinners,day_of_week ='tue',hour=19, minute=30)
+@sched.scheduled_job(addMoneyToWinners,day_of_week ='tue',hour=20)
 def scheduled_job():
     print('This job is run every weekday at 5pm.')
    

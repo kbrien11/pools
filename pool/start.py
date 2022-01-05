@@ -4,6 +4,7 @@ from .scrape import open_link,pull_scores
 from django.contrib.auth.models import User
 
 def addMoneyToWinners():
+    print("starting scaper in schedule")
     winning_pair = {}
     openLink = open_link()
     scores = pull_scores(openLink)

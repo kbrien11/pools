@@ -285,7 +285,7 @@ def addMoneyToWinners():
     openLink = open_link()
     scores = pull_scores(openLink)
 
-
+    print("tryign to scrape")
     boards = Board.objects.all()
     board_ser = BoardSerializer(boards,many=True)
     if board_ser:
@@ -324,7 +324,7 @@ def addMoneyToWinners():
                                 continue
 
 
-        return  schedule.CancelJob
+        return  
 
 
 

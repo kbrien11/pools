@@ -1,5 +1,7 @@
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.schedulers.background import BackgroundScheduler
+import os
+os.environ['DJANGO_SETTINGS_MODULE'] = 'pools.settings'
 
 
 

@@ -12,11 +12,11 @@ sched = BlockingScheduler()
 
 
 
-@sched.scheduled_job( 'interval', minutes=1)
+@sched.scheduled_job( 'interval', minutes=2)
 def scheduled_job():
     print('This job is run every weekday at 5pm.')
- 
+    from pools.pool.views import addMoneyToWinners
+    addMoneyToWinners()
 
 
 sched.start()
-

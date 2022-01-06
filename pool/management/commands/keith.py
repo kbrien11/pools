@@ -17,7 +17,7 @@ class Command(BaseCommand):
 
        sched = BlockingScheduler()
 
-       @sched.scheduled_job('interval', minutes=2)
+       @sched.scheduled_job()
        def scheduled_job():
            print('This job is run every weekday at 5pm.')
            addMoneyToWinners()

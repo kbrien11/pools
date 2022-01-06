@@ -4,4 +4,4 @@ release: python manage.py migrate
 
 
 
-clock: python manage.py keith
+clock: python manage.py clock

@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from ...views import addMoneyToWinners
 from apscheduler.schedulers.blocking import BlockingScheduler
+import subprocess
 from apscheduler.schedulers.background import BackgroundScheduler
 import os
 
@@ -15,11 +16,12 @@ class Command(BaseCommand):
        print("running command")
 
 
-       sched = BackgroundScheduler()
+       sched = BlockingScheduler()
 
        @sched.scheduled_job('interval', minutes=2)
        def scheduled_job():
            print('This job is run every weekday at 5pm.')
            addMoneyToWinners()
+           subprocess.call(('python manage.py keth'), shell = True, close_fds = True)
 
        sched.start()

@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
-from ...views import addMoneyToWinners
+from pools.pool.views import addMoneyToWinners
 from apscheduler.schedulers.blocking import BlockingScheduler
 import subprocess
 from apscheduler.schedulers.background import BackgroundScheduler

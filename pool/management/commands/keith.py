@@ -15,7 +15,7 @@ class Command(BaseCommand):
        print("running command")
 
 
-       sched = BlockingScheduler()
+       sched = BlockingScheduler('interval', minutes=2)
 
        @sched.scheduled_job()
        def scheduled_job():

@@ -36,13 +36,6 @@ def createUser(request):
             serializer.save()
             user = User.objects.filter(username=serializer.data['username']).first()
             token = Token.objects.get(user=user)
-#             send_mail(
-#                 'account creation',
-#                 'hi {} thanks for signing up for pool! Please log in and use our app to choose boxes or create a league'.format(serializer.data['first_name']),
-#                 'kbrien11@gmail.com',
-#                 [serializer.data['email']],
-#                 fail_silently=False
-#             )
             return Response({"data":serializer.data, "token":token.key})
         else:
             return Response({"error":"errro"})

@@ -71,7 +71,7 @@ def login(request):
     ser = UserSerializer(user_obj,many=False)
     print(ser['password'])
     if user_obj:
-        validate_password  = check_password(password,user_obj.password)
+        validate_password  = check_password(password,ser.data['password'])
         print(validate_password , password)
         if validate_password:
             token = Token.objects.get(user=user_obj)

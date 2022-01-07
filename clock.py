@@ -29,7 +29,7 @@ sched = BlockingScheduler()
 @sched.scheduled_job( 'interval', minutes=1)
 def scheduled_job():
     print('This job is run every weekday at 5pm.')
-
+    
     CHROME_DRIVER = os.environ.get("CHROME_DRIVER")
 
 
@@ -39,7 +39,7 @@ def scheduled_job():
     opts.add_argument('--headless')
     # s = Service(r"C:\Users\kbrie\Downloads\chromedriver_win32/chromedriver")
     web = webdriver.Chrome(options=opts,
-                           executable_path=r"C:\Users\kbrie\Downloads\chromedriver_win32/chromedriver")  # can set executable path if needed here: executable_path='chromedriver'\
+                           executable_path= CHROME_DRIVER)  # can set executable path if needed here: executable_path='chromedriver'\
     web.get('https://www.cbssports.com/nfl/scoreboard/')
     tot_scores = web.find_elements_by_xpath('.//td[@class="total-score"]')
     if len(tot_scores) == 0:

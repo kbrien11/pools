@@ -3,8 +3,6 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 import os
 
-from .pool.views import addMoneyToWinners
-
 os.environ['DJANGO_SETTINGS_MODULE'] = 'pools.settings'
 
 
@@ -12,13 +10,15 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'pools.settings'
 sched = BlockingScheduler()
 
 
+from .pool import *
+
 
 @sched.scheduled_job( 'interval', minutes=2)
 def scheduled_job():
     print('This job is run every weekday at 5pm.')
 
 
-    addMoneyToWinners()
-
+    
+    views.addMoneyToWinners()
 
 sched.start()

@@ -3,7 +3,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 import os
 
-from pools.pool import addMoneyToWinners
+from .pool.views import addMoneyToWinners
 
 os.environ['DJANGO_SETTINGS_MODULE'] = 'pools.settings'
 

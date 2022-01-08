@@ -278,7 +278,7 @@ def addMoneyToWinners():
     openLink = open_link()
     scores = pull_scores(openLink)
 
-    print("tryign to scrape")
+
     boards = Board.objects.all()
     board_ser = BoardSerializer(boards,many=True)
     if board_ser:
@@ -297,28 +297,31 @@ def addMoneyToWinners():
                         for k, v in winning_pair.items():
                             if box['pair'] ==str(v):
                                 box_update = Box.objects.filter(board_number = pk['id'],id=box['id']).first()
-                                box_update.hit = True
-                                box_update.count +=1
-                                box_update.save(update_fields=['hit','count'])
-                                print(k, v, box['pair'], box['id'],box_update.hit)
-                                add_money_to_user = Winnings.objects.filter(user_pk=box['user_pk'],board_pk =box['board_number']).first()
-                                if add_money_to_user:
-                                    add_money_to_user.balance += NFL_ser.data[k]
-                                    add_money_to_user.save(update_fields=['balance'])
-                                    user = User.objects.filter(pk=box['user_pk']).first()
-                                    print(user)
+                                if box_update.user_pk is not None:
+                                    box_update.hit = True
+                                    box_update.count +=1
+                                    box_update.save(update_fields=['hit','count'])
+                                    print(k, v, box['pair'], box['id'],box_update.hit)
+                                    add_money_to_user = Winnings.objects.filter(user_pk=box['user_pk'],board_pk =box['board_number']).first()
+                                    if add_money_to_user:
+                                        add_money_to_user.balance += NFL_ser.data[k]
+                                        add_money_to_user.save(update_fields=['balance'])
+                                        user = User.objects.filter(pk=box['user_pk']).first()
+                                        print(user)
+                                    else:
+                                        user_obj = User.objects.filter(pk = box['user_pk']).first()
+                                        winner = Winnings(user_pk =  user_obj,balance = NFL_ser.data[k],username=box['username'],board_pk=str(box['board_number']))
+                                        winner.save()
                                 else:
-                                    user_obj = User.objects.filter(pk = box['user_pk']).first()
-                                    winner = Winnings(user_pk =  user_obj,balance = NFL_ser.data[k],username=box['username'],board_pk=str(box['board_number']))
-                                    winner.save()
+                                    print("board isnt fully filled out")
+                                    pass
 
-                            #        /SEND EMAIL TO NOTIFY USER THEY WON
+                                #        /SEND EMAIL TO NOTIFY USER THEY WON
                             else:
-                                continue
+                              continue
 
-
-        return  
-
+        print("all board have been scraped ad updated")
+        return
 
 
 

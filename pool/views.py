@@ -303,15 +303,19 @@ def addMoneyToWinners():
                                     box_update.save(update_fields=['hit','count'])
                                     print(k, v, box['pair'], box['id'],box_update.hit)
                                     add_money_to_user = Winnings.objects.filter(user_pk=box['user_pk'],board_pk =box['board_number']).first()
-                                    if add_money_to_user:
-                                        add_money_to_user.balance += NFL_ser.data[k]
-                                        add_money_to_user.save(update_fields=['balance'])
-                                        user = User.objects.filter(pk=box['user_pk']).first()
-                                        print(user)
+                                    if NFL_ser.data[k] is not None:
+                                        if add_money_to_user:
+                                            add_money_to_user.balance += NFL_ser.data[k]
+                                            add_money_to_user.save(update_fields=['balance'])
+                                            user = User.objects.filter(pk=box['user_pk']).first()
+                                            print(user)
+                                        else:
+                                            user_obj = User.objects.filter(pk = box['user_pk']).first()
+                                            winner = Winnings(user_pk =  user_obj,balance = NFL_ser.data[k],username=box['username'],board_pk=str(box['board_number']))
+                                            winner.save()
                                     else:
-                                        user_obj = User.objects.filter(pk = box['user_pk']).first()
-                                        winner = Winnings(user_pk =  user_obj,balance = NFL_ser.data[k],username=box['username'],board_pk=str(box['board_number']))
-                                        winner.save()
+                                        print("money board is empty")
+                                        pass
                                 else:
                                     print("board isnt fully filled out")
                                     pass

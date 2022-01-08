@@ -97,6 +97,7 @@ def pull_scores(web):
                         gm[key].append(str(run_tot2)[-1])
 
             gm_list.append(gm)
+    print(gm_list)
     return gm_list
 
 

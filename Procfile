@@ -4,4 +4,4 @@ web: gunicorn pools.wsgi
 
 
 
-clock: python clock.py
+clock: python manage.py keith

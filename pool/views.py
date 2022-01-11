@@ -111,6 +111,16 @@ def getBoardFromUser(request,token):
     return Response({"codes":codes})
 
 
+@api_view(['GET'])
+def game_in_progress(request,board_number):
+    boxes = Box.objects.filter(board_number = board_number).all()
+    for box in boxes:
+        if box.username == "":
+            return Response({"data":True})
+        else:
+            pass
+    return Response({"data":False})
+
 
 @api_view(['POST'])
 def login(request):

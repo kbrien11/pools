@@ -21,7 +21,7 @@ urlpatterns = [
     path('get_user_name/<pk>',views.get_user_name),
     path('leaderboard/<board_pk>',views.leaderboard),
     path('marchMadness/<board_number>', views.addToMarchMadnessTable),
-    path('validate_creator/<token>/<board_number>', views.validate_creator)
+    path('validate_creator/<token>/<board_number>', views.validate_creator),
     path('userboard/<token>',views.getBoardFromUser),
     path('game_in_progress/<board_number>',views.game_in_progress)
 

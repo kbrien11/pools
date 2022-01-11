@@ -18,10 +18,16 @@ import time
 import threading
 from datetime import date
 from dateutil.parser import parse
-
+from mailjet_rest import Client
 
 from .serializers import BoardSerializer,UserSerializer,BoxSerialiazer,NFLSerializer,WinningsSerializer,MarchMadnessSerializer,AdminSerializer
 
+api_key = os.environ.get("API_KEY")
+api_secret = os.environ.get("API_SECRET")
+
+print(api_key,api_secret)
+
+mailjet = Client(auth=(api_key, api_secret), version='v3.1')
 
 
 
@@ -31,11 +37,38 @@ from .serializers import BoardSerializer,UserSerializer,BoxSerialiazer,NFLSerial
 
 @api_view(['POST'])
 def createUser(request):
+        password = request.data.get("password")
+        email = request.data.get("email")
+        first_name = request.data.get("first_name")
         serializer = UserSerializer(data=request.data)
+        print(password)
         if serializer.is_valid():
             serializer.save()
             user = User.objects.filter(username=serializer.data['username']).first()
             token = Token.objects.get(user=user)
+            print(token)
+            data = {
+                'Messages': [
+                    {
+                        "From": {
+                            "Email": "kbrien11@gmail.com",
+                            "Name": "Keith"
+                        },
+                        "To": [
+                            {
+                                "Email": email,
+                                "Name": first_name
+                            }
+                        ],
+                        "Subject": "Thank you for registering",
+                        "TextPart": "My first Mailjet email",
+                        "HTMLPart": "<h3> Hi, {} thank you for signing up. Feel free to create a league or join an existing one. Goodluck on your boxes".format(str(first_name))
+
+                    }
+                ]
+            }
+            result = mailjet.send.create(data=data)
+            print(result.json)
             return Response({"data":serializer.data, "token":token.key})
         else:
             return Response({"error":"errro"})
@@ -53,6 +86,28 @@ def getUser(request,username):
         return Response({"token": token.key})
     else:
         return Response({"error": "errro"})
+
+
+@api_view(['GET'])
+def getBoardFromUser(request,token):
+    boxes_list = []
+    codes = []
+    user = Token.objects.get(key = token).user
+    boxes  = Box.objects.filter(username=user).all()
+    box_ser = BoxSerialiazer(boxes,many=True)
+    for board_id in box_ser.data:
+        if board_id['board_number'] in boxes_list:
+            pass
+        else:
+            boxes_list.append(board_id['board_number'])
+
+    for v in boxes_list:
+        boards = Board.objects.filter(id = v).first()
+        board_ser = BoardSerializer(boards,many=False)
+        code = board_ser.data['code']
+        codes.append((code))
+
+    return Response({"codes":codes})
 
 
 
@@ -95,6 +150,7 @@ def create_board(request,token):
 
     if board:
         board.save()
+        print(board)
         new_admin = Admin(board_number = board,user_pk = user,creator=True)
         new_admin.save()
         win = [str(i) for i in range(10)]
@@ -127,14 +183,29 @@ def create_board(request,token):
             else:
                 print(Response(status = status.HTTP_400_BAD_REQUEST))
 
-#         send_mail(
-#             'league created',
-#             'Hi {}, the code to join the leauge is {}'.format(
-#                 user, board.code),
-#             "kbrien11@gmail.com",
-#             [data.data['email']],
-#             fail_silently=False
-#         )
+        data = {
+            'Messages': [
+                {
+                    "From": {
+                        "Email": "kbrien11@gmail.com",
+                        "Name": "Keith"
+                    },
+                    "To": [
+                        {
+                            "Email": data.data['email'],
+                            "Name": data.data['first_name']
+                        }
+                    ],
+                    "Subject": "Thank you for registering",
+                    "TextPart": "My first Mailjet email",
+                    "HTMLPart": "<h3> Hi, {} thank you for creating a new board. Feel free to share this code -- {}-- with your friends.Goodluck on your boxes".format( str(data.data['first_name']),
+                        str(board.code))
+
+                }
+            ]
+        }
+        result = mailjet.send.create(data=data)
+        print(result.json)
         return Response({"pairs":total_pairs,"board_nuber":board.id,"winningNumbers":winners_list,"losingNumbers":losers_list,"code":board.code})
 
 @api_view(['POST'])

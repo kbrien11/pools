@@ -19,7 +19,8 @@ import threading
 from datetime import date
 from dateutil.parser import parse
 from mailjet_rest import Client
-
+import os
+import environ
 from .serializers import BoardSerializer,UserSerializer,BoxSerialiazer,NFLSerializer,WinningsSerializer,MarchMadnessSerializer,AdminSerializer
 
 api_key = os.environ.get("API_KEY")

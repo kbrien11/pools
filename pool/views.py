@@ -93,6 +93,7 @@ def getUser(request,username):
 def getBoardFromUser(request,token):
     boxes_list = []
     codes = []
+    names = []
     user = Token.objects.get(key = token).user
     boxes  = Box.objects.filter(username=user).all()
     box_ser = BoxSerialiazer(boxes,many=True)
@@ -105,10 +106,14 @@ def getBoardFromUser(request,token):
     for v in boxes_list:
         boards = Board.objects.filter(id = v).first()
         board_ser = BoardSerializer(boards,many=False)
+        name = board_ser.data['name']
         code = board_ser.data['code']
-        codes.append((code))
+        if len(name) >0:
+            codes.append((name))
+        else:
+            codes.append((code))
 
-    return Response({"codes":codes})
+    return Response({"codes":codes,"names":names})
 
 
 @api_view(['GET'])

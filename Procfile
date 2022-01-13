@@ -1,6 +1,6 @@
 web: gunicorn pools.wsgi
 
-release: manage.py migrate
+release: python manage.py migrate
 
 
 

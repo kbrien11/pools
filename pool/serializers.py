@@ -8,12 +8,17 @@ from rest_framework import serializers
 class BoardSerializer(serializers.ModelSerializer):
     class Meta:
         model = Board
-        fields =['id','code','type']
+        fields =['id','code','type','name']
 
 class AdminSerializer(serializers.ModelSerializer):
     class Meta:
         model = Admin
         fields = ['id','user_pk','board_number','creator']
+        
+class GeneratedNumbersSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GeneratedNumbers
+        fields = ['id','winning','losing']
 
 class NFLSerializer(serializers.ModelSerializer):
     class Meta:

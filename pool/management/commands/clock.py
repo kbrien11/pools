@@ -4,6 +4,8 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 import subprocess
 from apscheduler.schedulers.background import BackgroundScheduler
 import os
+from datetime import date,datetime
+
 
 os.environ['DJANGO_SETTINGS_MODULE'] = 'pools.settings'
 
@@ -18,10 +20,10 @@ class Command(BaseCommand):
 
        sched = BlockingScheduler()
 
-       @sched.scheduled_job('interval', minutes=2)
+       @sched.scheduled_job( 'date', run_date=datetime(2022, 1, 13, 12, 10, 0), args=['text'])
        def scheduled_job():
-           print('This job is run every weekday at 5pm.')
+           print('This job is to run on jan 13th at 12:10.')
            addMoneyToWinners()
-           subprocess.call(('python manage.py keth'), shell = True, close_fds = True)
+           subprocess.call(('python manage.py clock'), shell = True, close_fds = True)
 
        sched.start()

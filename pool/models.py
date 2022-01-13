@@ -16,7 +16,7 @@ User._meta.get_field('username')._unique = True
 class Board(models.Model):
     code = models.IntegerField(null=False,default=0)
     type = models.CharField(default="", max_length=10)
-
+    name = models.CharField(default="" , max_length=20)
 
 class Box(models.Model):
    user_pk = models.ForeignKey(User, on_delete=models.CASCADE,null=True , default="")
@@ -56,6 +56,9 @@ class Admin(models.Model):
     creator = models.BooleanField(default=False)
 
 
-
+class GeneratedNumbers(models.Model):
+    winning = models.TextField(default="")
+    losing = models.TextField(default="")
+    board_pk = models.CharField(default="", max_length=20)
 
 

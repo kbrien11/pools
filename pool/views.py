@@ -5,7 +5,7 @@ from django.contrib.auth.hashers import check_password,make_password
 from rest_framework.views import Response
 from .models import Box,Board
 from rest_framework.decorators import action,api_view
-from .models import Board,Box,NFL,Winnings,MarchMadness,Admin
+from .models import Board,Box,NFL,Winnings,MarchMadness,Admin,GeneratedNumbers
 from rest_framework import viewsets,generics
 from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
@@ -21,7 +21,7 @@ from dateutil.parser import parse
 from mailjet_rest import Client
 import os
 import environ
-from .serializers import BoardSerializer,UserSerializer,BoxSerialiazer,NFLSerializer,WinningsSerializer,MarchMadnessSerializer,AdminSerializer
+from .serializers import BoardSerializer,UserSerializer,BoxSerialiazer,NFLSerializer,WinningsSerializer,MarchMadnessSerializer,AdminSerializer,GeneratedNumbersSerializer
 
 api_key = os.environ.get("API_KEY")
 api_secret = os.environ.get("API_SECRET")
@@ -217,6 +217,8 @@ def create_board(request,token):
         }
         result = mailjet.send.create(data=data)
         print(result.json)
+        new_Numbers = GeneratedNumbers(winning=winners_list,losing=losers_list,board_pk=board.id)
+        new_Numbers.save()
         return Response({"pairs":total_pairs,"board_nuber":board.id,"winningNumbers":winners_list,"losingNumbers":losers_list,"code":board.code})
 
 @api_view(['POST'])

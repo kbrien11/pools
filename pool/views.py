@@ -298,7 +298,10 @@ def show_board(request,token,board_number):
         print(user, token)
         board_data = Box.objects.filter(board_number = board_number).order_by('id')
         serializer = BoxSerialiazer(board_data, many=True)
-        return Response({"board":serializer.data})
+        numbers = GeneratedNumbers.objects.filter(board_pk=board_number).first()
+        numbers_ser = GeneratedNumbersSerializer(numbers, many=False)
+        print(numbers_ser.data)
+        return Response({"board":serializer.data,"winning":numbers_ser.data['winning'],"losing":numbers_ser.data['losing']})
 
 @api_view(['GET'])
 def show_board_with_code(request,code):
@@ -310,7 +313,28 @@ def show_board_with_code(request,code):
         if board_number:
             board_data = Box.objects.filter(board_number=board_number).order_by('id')
             serializer = BoxSerialiazer(board_data, many=True)
-            return Response({"board": serializer.data,"board_nuber":board_number,"type":board_type})
+            numbers = GeneratedNumbers.objects.filter(board_pk=board_number).first()
+            numbers_ser = GeneratedNumbersSerializer(numbers, many=False)
+            print(numbers_ser.data)
+            return Response({"board":serializer.data,"winning":numbers_ser.data['winning'],"losing":numbers_ser.data['losing']})
+  
+    else:
+        return Response({"error":"error"})
+
+@api_view(['GET'])
+def show_board_with_name(request,name):
+    board_id = Board.objects.filter(name = name).first()
+    if board_id:
+        seriazlier = BoardSerializer(board_id,many = False)
+        board_type = seriazlier.data['type']
+        board_number = seriazlier.data['id']
+        if board_number:
+            numbers = GeneratedNumbers.objects.filter(board_pk=board_number).first()
+            numbers_ser = GeneratedNumbersSerializer(numbers,many=False)
+            print(numbers_ser.data)
+            board_data = Box.objects.filter(board_number=board_number).order_by('id')
+            serializer = BoxSerialiazer(board_data, many=True)
+            return Response({"board": serializer.data,"board_nuber":board_number,"type":board_type,"winning":numbers_ser.data['winning'],"losing":numbers_ser.data['losing']})
     else:
         return Response({"error":"error"})
     
@@ -325,7 +349,16 @@ def validate_code(request,code):
     else:
         return Response({"error":"wrong code"})
 
+@api_view(['GET'])
+def validate_name(request,name):
 
+    board_id = Board.objects.filter(name=name).first()
+    seriazlier = BoardSerializer(board_id, many=False)
+    board_number = seriazlier.data['code']
+    if board_number:
+        return Response({"code":name,"board":seriazlier.data['id']})
+    else:
+        return Response({"error":"wrong name"})
 
 @api_view(['GET'])
 def verifyBox(request,token,box_id,board_number):

@@ -225,7 +225,7 @@ def create_board(request,token):
         print(result.json)
         new_Numbers = GeneratedNumbers(winning=winners_list,losing=losers_list,board_pk=board.id)
         new_Numbers.save()
-        return Response({"pairs":total_pairs,"board_nuber":board.id,"code":board.code})
+        return Response({"pairs":total_pairs,"board_nuber":board.id,"winningNumbers":winners_list,"losingNumbers":losers_list,"code":board.code})
 
 @api_view(['POST'])
 def addToNFLTable(request,board_number):

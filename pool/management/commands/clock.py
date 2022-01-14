@@ -20,7 +20,7 @@ class Command(BaseCommand):
 
        sched = BlockingScheduler()
 
-       @sched.scheduled_job( 'interval', minutes=2)
+       @sched.scheduled_job( 'interval', minutes=1)
        def scheduled_job():
            print('This job is to runin 2 minutes.')
            addMoneyToWinners()

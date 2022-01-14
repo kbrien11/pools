@@ -83,10 +83,10 @@ WSGI_APPLICATION = 'pools.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'd9vttes3je2iml',
-        'HOST':'ec2-54-83-152-251.compute-1.amazonaws.com',
-        'USER':'uzwyedlnfyvbck',
-        'PASSWORD':'613f6f60d31ca2a83bbfcc0b64c43b1d29464ea5faee1e51a0f308f323a52a8e',
+        'NAME': 'ddr4itn7dsbnd3',
+        'HOST':'ec2-3-227-15-75.compute-1.amazonaws.com',
+        'USER':'liudeyyyagdyln',
+        'PASSWORD':'54d211a5c70ebc486029830a12aed35a847025a318796eb5f513c07ccac9e502',
         'PORT':'5432'
     },
 }

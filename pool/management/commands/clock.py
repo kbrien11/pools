@@ -20,10 +20,10 @@ class Command(BaseCommand):
 
        sched = BlockingScheduler()
 
-       @sched.scheduled_job( 'cron',day_of_week='mon-fri', hour=22, minute=30)
+       @sched.scheduled_job( 'interval', minute=2)
        def scheduled_job():
-           print('This job is to run on jan 13th at 9:15.')
+           print('This job is to runin 2 minutes.')
            addMoneyToWinners()
-           subprocess.call(('python manage.py clock'), shell = True, close_fds = True)
+          
 
        sched.start()

@@ -333,9 +333,9 @@ def show_board_with_name(request,name):
         if board_number:
             numbers = GeneratedNumbers.objects.filter(board_pk=board_number).first()
             numbers_ser = GeneratedNumbersSerializer(numbers,many=False)
-            print(numbers_ser.data)
-            board_data = Box.objects.filter(board_number=board_number).order_by('id'
-            return Response({"pairs":total_pairs,"board_nuber":board.id,"winningNumbers":new_Numbers.winning,"losingNumbers":new_Numbers.losing,"code":board.code})
+            board_data = Box.objects.filter(board_number=board_number).order_by('id')
+            serializer = BoxSerialiazer(board_data, many=True)
+            return Response({"board": serializer.data,"board_nuber":board_number,"type":board_type,"winning":numbers.winning,"losing":numbers.losing})
     else:
         return Response({"error":"error"})
     

@@ -61,4 +61,9 @@ class GeneratedNumbers(models.Model):
     losing = models.TextField(default="")
     board_pk = models.CharField(default="", max_length=20)
 
+    
+
+class ScrapeData(models.Model):
+    home_team = models.CharField(max_length=20,blank=False)
+    away_team = models.CharField(max_length=20, blank=False)
 

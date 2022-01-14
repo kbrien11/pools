@@ -57,8 +57,8 @@ class Admin(models.Model):
 
 
 class GeneratedNumbers(models.Model):
-    winning = models.TextField(default="")
-    losing = models.TextField(default="")
+    winning =  ArrayField(models.IntegerField(blank=True), default=list)
+    losing =  ArrayField(models.IntegerField(blank=True), default=list)
     board_pk = models.CharField(default="", max_length=20)
 
     

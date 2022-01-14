@@ -152,11 +152,12 @@ def login(request):
 @api_view(['POST'])
 def create_board(request,token):
     type = request.data.get("type")
+    board_name = request.data.get("name")
     user = Token.objects.get(key=token).user
     data = UserSerializer(user, many=False)
     print(data.data['email'])
     generate_code = random.randint(100,10000)
-    board = Board(code = generate_code,type=type)
+    board = Board(code = generate_code,type=type,name=board_name)
     print(board)
     winners_list = []
     losers_list = []

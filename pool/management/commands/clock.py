@@ -20,7 +20,7 @@ class Command(BaseCommand):
 
        sched = BlockingScheduler()
 
-       @sched.scheduled_job( 'cron',day_of_week='mon-fri', hour=21, minute=30)
+       @sched.scheduled_job( 'cron',day_of_week='mon-fri', hour=22, minute=30)
        def scheduled_job():
            print('This job is to run on jan 13th at 9:15.')
            addMoneyToWinners()

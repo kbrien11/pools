@@ -215,7 +215,7 @@ def create_board(request,token):
                     ],
                     "Subject": "Thank you for registering",
                     "TextPart": "My first Mailjet email",
-                    "HTMLPart": "<h3> Hi, {} thank you for creating a new board. Feel free to share this code -- {}-- with your friends.Goodluck on your boxes".format( str(data.data['first_name']),
+                    "HTMLPart": "<h3> Hi {}, thank you for creating a new board. Feel free to share this code --- {}--- and or link ---https://runyourpool.netlify.app/--- with your friends.Goodluck on your boxes".format( str(data.data['first_name']),
                         str(board.code))
 
                 }
@@ -305,9 +305,7 @@ def show_board(request,token,board_number):
         board_data = Box.objects.filter(board_number = board_number).order_by('id')
         serializer = BoxSerialiazer(board_data, many=True)
         numbers = GeneratedNumbers.objects.filter(board_pk=board_number).first()
-        numbers_ser = GeneratedNumbersSerializer(numbers, many=False)
-        print(numbers_ser.data)
-        return Response({"board":serializer.data,"winning":numbers_ser.data['winning'],"losing":numbers_ser.data['losing']})
+        return Response({"pairs":total_pairs,"board_nuber":board.id,"winningNumbers":new_Numbers.winning,"losingNumbers":new_Numbers.losing,"code":board.code})
 
 @api_view(['GET'])
 def show_board_with_code(request,code):
@@ -320,9 +318,7 @@ def show_board_with_code(request,code):
             board_data = Box.objects.filter(board_number=board_number).order_by('id')
             serializer = BoxSerialiazer(board_data, many=True)
             numbers = GeneratedNumbers.objects.filter(board_pk=board_number).first()
-            numbers_ser = GeneratedNumbersSerializer(numbers, many=False)
-            print(numbers_ser.data)
-            return Response({"board":serializer.data,"winning":numbers_ser.data['winning'],"losing":numbers_ser.data['losing']})
+            return Response({"pairs":total_pairs,"board_nuber":board.id,"winningNumbers":new_Numbers.winning,"losingNumbers":new_Numbers.losing,"code":board.code})
   
     else:
         return Response({"error":"error"})
@@ -338,9 +334,8 @@ def show_board_with_name(request,name):
             numbers = GeneratedNumbers.objects.filter(board_pk=board_number).first()
             numbers_ser = GeneratedNumbersSerializer(numbers,many=False)
             print(numbers_ser.data)
-            board_data = Box.objects.filter(board_number=board_number).order_by('id')
-            serializer = BoxSerialiazer(board_data, many=True)
-            return Response({"board": serializer.data,"board_nuber":board_number,"type":board_type,"winning":numbers_ser.data['winning'],"losing":numbers_ser.data['losing']})
+            board_data = Box.objects.filter(board_number=board_number).order_by('id'
+            return Response({"pairs":total_pairs,"board_nuber":board.id,"winningNumbers":new_Numbers.winning,"losingNumbers":new_Numbers.losing,"code":board.code})
     else:
         return Response({"error":"error"})
     

@@ -113,7 +113,7 @@ def getBoardFromUser(request,token):
         else:
             codes.append((code))
 
-    return Response({"codes":codes,"names":names})
+    return Response({"codes":codes})
 
 
 @api_view(['GET'])

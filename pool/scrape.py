@@ -23,7 +23,7 @@ def open_link():
     opts = Options()
     opts.add_argument('--headless')
     # s = Service(r"C:\Users\kbrie\Downloads\chromedriver_win32/chromedriver")
-    web = webdriver.Chrome(options=opts,executable_path=r"C:\Users\kbrie\Downloads\chromedriver_win32/chromedriver") #can set executable path if needed here: executable_path='chromedriver'\
+    web = webdriver.Chrome(options=opts,executable_path=CHROME_DRIVER) #can set executable path if needed here: executable_path='chromedriver'\
     web.get('https://www.cbssports.com/nfl/scoreboard/')
     tot_scores = web.find_elements_by_xpath('.//td[@class="total-score"]')
     if len(tot_scores)==0:

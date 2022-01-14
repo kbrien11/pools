@@ -213,7 +213,7 @@ def create_board(request,token):
                             "Name": data.data['first_name']
                         }
                     ],
-                    "Subject": "Thank you for registering",
+                    "Subject": "Thank you for Creating a new league",
                     "TextPart": "My first Mailjet email",
                     "HTMLPart": "<h3> Hi {}, thank you for creating a new board. Feel free to share this code --- {}--- and or link ---https://runyourpool.netlify.app/--- with your friends.Goodluck on your boxes".format( str(data.data['first_name']),
                         str(board.code))
@@ -225,6 +225,7 @@ def create_board(request,token):
         print(result.json)
         new_Numbers = GeneratedNumbers(winning=winners_list,losing=losers_list,board_pk=board.id)
         new_Numbers.save()
+        print(new_Numbers.winning)
         return Response({"pairs":total_pairs,"board_nuber":board.id,"winningNumbers":new_Numbers.winning,"losingNumbers":new_Numbers.losing,"code":board.code})
 
 @api_view(['POST'])

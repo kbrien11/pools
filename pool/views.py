@@ -131,7 +131,7 @@ def game_in_progress(request,board_number):
 def login(request):
     email = request.data.get("email")
     password = request.data.get("password")
-    user_obj = User.objects.filter(email=email).first()
+    user_obj = User.objects.filter(email__iexact=email).first()
     ser = UserSerializer(user_obj,many=False)
     print(ser['password'])
     if user_obj:

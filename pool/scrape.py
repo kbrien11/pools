@@ -33,8 +33,7 @@ def open_link():
 
 
 def pull_scores(web):
-    gms = web.find_elements_by_xpath('//div[contains(@id, "game") and not(contains(@id,"pregame"))]')
-    '''Use open_link function return value to populate correct web browser instance for score data'''
+    gms = web.find_elements_by_xpath('//div[contains(@id, "game")]')
     num_names = {}
     num_names[1] = "first"
     num_names[2] = "second"

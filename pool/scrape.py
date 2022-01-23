@@ -33,7 +33,8 @@ def open_link():
 
 
 def pull_scores(web):
-    gms = web.find_elements_by_xpath('//div[contains(@id, "game")]')
+    gms = web.find_elements_by_xpath('//div[contains(@id, "game") and not(contains(@id,"pregame"))]')
+    '''Use open_link function return value to populate correct web browser instance for score data'''
     num_names = {}
     num_names[1] = "first"
     num_names[2] = "second"
@@ -109,25 +110,4 @@ def pull_scores(web):
 
                     print(m)
                     gm_list.append(gm)
-     return gm_list
-
-
-
-# def get_data():
-#     m = {}
-#     web = open_link()
-#     scores = pull_scores(web)
-#     web.close()
-#
-#     for i in scores:
-#         m["first"] = tuple(i['first'])
-#         m["second"] = tuple(i["second"])
-#         m["third"] = tuple(i["third"])
-#         m["fourth"] = tuple(i["fourth"])
-#         m["team"] = tuple(i["team_away"])
-#
-#         for k,v in m.items():
-#
-#             print(k,v)
-#
-# print(get_data())
+    return gm_list

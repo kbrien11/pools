@@ -109,7 +109,7 @@ def pull_scores(web):
 
                     print(m)
                     gm_list.append(gm)
-    return gm_list
+     return gm_list
 
 
 

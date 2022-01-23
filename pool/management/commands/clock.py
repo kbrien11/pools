@@ -24,6 +24,6 @@ class Command(BaseCommand):
        def scheduled_job():
            print('This job is to runin 2 minutes.')
            addMoneyToWinners()
-          
+           subprocess.call(('python manage.py clock'), shell = True, close_fds = True)
 
        sched.start()

@@ -127,6 +127,7 @@ def login(request):
 
 @api_view(['POST'])
 def create_board(request,token):
+    print("hi")
     type = request.data.get("type")
     board_name = request.data.get("name")
     user = Token.objects.get(key=token).user

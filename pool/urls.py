@@ -9,7 +9,6 @@ from rest_framework.authtoken.views import obtain_auth_token
 
 urlpatterns = [
     path('create_user', views.createUser , name = "create-user"),
-    path('get-user/<str:username>', views.getUser , name = 'get-user'),
     path('login' ,views.login ),
     path('create_board/<token>' , views.create_board),
     path('addUserToBoard/<token>/<box_pk>/<board_number>' , views.addUserToBox),

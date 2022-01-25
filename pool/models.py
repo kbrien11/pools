@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.contrib.postgres.fields import ArrayField
 
 User._meta.get_field('username')._unique = True
-
+User._meta.get_field('email')._unique = True
 
 
 # class Boxes(models.Model):
@@ -16,7 +16,7 @@ User._meta.get_field('username')._unique = True
 class Board(models.Model):
     code = models.IntegerField(null=False,default=0)
     type = models.CharField(default="", max_length=10)
-    name = models.CharField(default="" , max_length=20)
+    name = models.CharField(default="" , max_length=20,unique=True,null=False)
 
 class Box(models.Model):
    user_pk = models.ForeignKey(User, on_delete=models.CASCADE,null=True , default="")
@@ -33,7 +33,7 @@ class NFL(models.Model):
     two = models.FloatField(blank=False)
     three = models.FloatField(blank=False)
     four = models.FloatField(blank=False)
-    board_number = models.IntegerField( default="")
+    board_number = models.ForeignKey(Board, on_delete=models.CASCADE)
 
 class MarchMadness(models.Model):
     first_round = models.FloatField(blank=False,default=0)
@@ -42,7 +42,7 @@ class MarchMadness(models.Model):
     elite_eight = models.FloatField(blank=False, default=0)
     final_four = models.FloatField(blank=False, default=0)
     championship = models.FloatField(blank=False, default=0)
-    board_number = models.IntegerField(default="")
+    board_number = models.ForeignKey(Board, on_delete=models.CASCADE)
 
 class Winnings(models.Model):
     user_pk = models.ForeignKey(User, on_delete=models.CASCADE, null=True, default="")

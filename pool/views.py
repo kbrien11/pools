@@ -163,10 +163,7 @@ def create_board(request,token):
     winners_list = []
     losers_list = []
     total_pairs = []
-
-
     if board:
-
         if type == "football":
             print("football")
             four = int(request.data.get("four"))
@@ -178,11 +175,9 @@ def create_board(request,token):
                 print("inserting into money table")
                 board.save()
                 NFL_table.save()
-
             else:
                 print("not adding to board table")
                 return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
         elif type == "basketball":
             print("basketball")
             first_round = int(request.data.get("first_round"))
@@ -209,7 +204,6 @@ def create_board(request,token):
         los = [str(i) for i in range(10)]
         random.shuffle(win)
         random.shuffle(los)
-
         print(data.data['email'])
         for j in win:
             winners_list.append(j)

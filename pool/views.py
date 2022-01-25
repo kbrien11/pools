@@ -75,6 +75,55 @@ def createUser(request):
             return Response({"error":"errro"})
 
 
+@api_view(['GET'])
+def getBoardFromUser(request,token):
+    boxes_list = []
+    codes = []
+    names = []
+    user = Token.objects.get(key = token).user
+    boxes  = Box.objects.filter(username=user).all()
+    box_ser = BoxSerialiazer(boxes,many=True)
+    for board_id in box_ser.data:
+        if board_id['board_number'] in boxes_list:
+            pass
+        else:
+            boxes_list.append(board_id['board_number'])
+
+    for v in boxes_list:
+        boards = Board.objects.filter(id = v).first()
+        board_ser = BoardSerializer(boards,many=False)
+        name = board_ser.data['name']
+        code = board_ser.data['code']
+        if len(name) >0:
+            codes.append((name))
+        else:
+            codes.append((code))
+
+    return Response({"codes":codes,"names":names})
+
+@api_view(['POST'])
+def login(request):
+    email = request.data.get("email")
+    password = request.data.get("password")
+    user_obj = User.objects.filter(email__iexact=email).first()
+    ser = UserSerializer(user_obj, many=False)
+    print(user_obj)
+    if user_obj:
+        validate_password = check_password(password, ser.data['password'])
+        print(validate_password, password)
+        if validate_password:
+            token = Token.objects.get(user=user_obj)
+            print(token.key)
+            return Response({'token': token.key})
+        else:
+            print("error logging in")
+            return Response({"error": "invalid password"})
+    else:
+        print("email is wrong")
+        return Response({"error": "invalid email"})
+
+
+
 
 @api_view(['POST'])
 def create_board(request,token):

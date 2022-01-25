@@ -76,79 +76,6 @@ def createUser(request):
 
 
 
-
-@api_view(['GET'])
-def getUser(request,username):
-    user = User.objects.filter(username = username).first()
-    print(user)
-    serializer = UserSerializer(user,many = False)
-    token = Token.objects.get(user=user)
-    if serializer:
-        return Response({"token": token.key})
-    else:
-        return Response({"error": "errro"})
-
-
-@api_view(['GET'])
-def getBoardFromUser(request,token):
-    boxes_list = []
-    codes = []
-    names = []
-    user = Token.objects.get(key = token).user
-    boxes  = Box.objects.filter(username=user).all()
-    box_ser = BoxSerialiazer(boxes,many=True)
-    for board_id in box_ser.data:
-        if board_id['board_number'] in boxes_list:
-            pass
-        else:
-            boxes_list.append(board_id['board_number'])
-
-    for v in boxes_list:
-        boards = Board.objects.filter(id = v).first()
-        board_ser = BoardSerializer(boards,many=False)
-        name = board_ser.data['name']
-        code = board_ser.data['code']
-        if len(name) >0:
-            codes.append((name))
-        else:
-            codes.append((code))
-
-    return Response({"codes":codes})
-
-
-@api_view(['GET'])
-def game_in_progress(request,board_number):
-    boxes = Box.objects.filter(board_number = board_number).all()
-    for box in boxes:
-        if box.username == "":
-            return Response({"data":True})
-        else:
-            pass
-    return Response({"data":False})
-
-
-@api_view(['POST'])
-def login(request):
-    email = request.data.get("email")
-    password = request.data.get("password")
-    user_obj = User.objects.filter(email__iexact=email).first()
-    ser = UserSerializer(user_obj,many=False)
-    print(ser['password'])
-    if user_obj:
-        validate_password  = check_password(password,ser.data['password'])
-        print(validate_password , password)
-        if validate_password:
-            token = Token.objects.get(user=user_obj)
-            print(token.key)
-            return Response({'token':token.key})
-        else:
-            print("error logging in")
-            return Response( {"error":"invalid password"})
-    else:
-        print("email is wrong")
-        return Response({"error": "invalid email"})
-
-
 @api_view(['POST'])
 def create_board(request,token):
     type = request.data.get("type")
@@ -158,12 +85,12 @@ def create_board(request,token):
     print(data.data['email'])
     generate_code = random.randint(100,10000)
     board = Board(code = generate_code,type=type,name=board_name)
+    print(board.id)
     print('ceating board')
     winners_list = []
     losers_list = []
     total_pairs = []
     if board:
-        print(type)
         if type == "football":
             print("football")
             four = int(request.data.get("four"))
@@ -175,9 +102,11 @@ def create_board(request,token):
                 print("inserting into money table")
                 board.save()
                 NFL_table.save()
+
             else:
                 print("not adding to board table")
                 return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
         elif type == "basketball":
             print("basketball")
             first_round = int(request.data.get("first_round"))
@@ -204,6 +133,7 @@ def create_board(request,token):
         los = [str(i) for i in range(10)]
         random.shuffle(win)
         random.shuffle(los)
+
         print(data.data['email'])
         for j in win:
             winners_list.append(j)

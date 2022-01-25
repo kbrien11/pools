@@ -158,15 +158,50 @@ def create_board(request,token):
     print(data.data['email'])
     generate_code = random.randint(100,10000)
     board = Board(code = generate_code,type=type,name=board_name)
-    print(board)
+    print(board.id)
+    print('ceating board')
     winners_list = []
     losers_list = []
     total_pairs = []
 
 
-
     if board:
-        board.save()
+
+        if type == "football":
+            print("football")
+            four = int(request.data.get("four"))
+            three = int(request.data.get("three"))
+            two = int(request.data.get("two"))
+            one = int(request.data.get("one"))
+            NFL_table = NFL(four=four, three=three, two=two, one=one, board_number=board)
+            if NFL_table.one >=0 and NFL_table.two >=0 and NFL_table.three >=0 and NFL_table.four >=0:
+                print("inserting into money table")
+                board.save()
+                NFL_table.save()
+
+            else:
+                print("not adding to board table")
+                return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        elif type == "basketball":
+            print("basketball")
+            first_round = int(request.data.get("first_round"))
+            second_round = int(request.data.get("second_round"))
+            sweet_sixteen = int(request.data.get("sweet_sixteen"))
+            elite_eight = int(request.data.get("elite_eight"))
+            final_four = int(request.data.get("final_four"))
+            championship = int(request.data.get("championship"))
+            march_madness = MarchMadness(first_round=first_round, second_round=second_round,
+                                         sweet_sixteen=sweet_sixteen,
+                                         elite_eight=elite_eight, final_four=final_four, championship=championship,
+                                         board_number=board)
+            if march_madness.first_round >=0 and march_madness.second_round >=0 and march_madness.sweet_sixteen >=0 and march_madness.elite_eight >=0 and march_madness.final_four >=0 and march_madness.championship >=0:
+                board.save()
+                march_madness.save()
+
+            else:
+                return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
         print(board)
         new_admin = Admin(board_number = board,user_pk = user,creator=True)
         new_admin.save()
@@ -225,35 +260,12 @@ def create_board(request,token):
         print(result.json)
         new_Numbers = GeneratedNumbers(winning=winners_list,losing=losers_list,board_pk=board.id)
         new_Numbers.save()
-        print(new_Numbers.winning)
+        new_Numbers.winning
         return Response({"pairs":total_pairs,"board_nuber":board.id,"winningNumbers":new_Numbers.winning,"losingNumbers":new_Numbers.losing,"code":board.code})
-
-@api_view(['POST'])
-def addToNFLTable(request,board_number):
-    four = request.data.get("four")
-    three = request.data.get("three")
-    two = request.data.get("two")
-    one = request.data.get("one")
+    else:
+        return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-    NFL_table = NFL(four=four, three=three, two=two, one=one, board_number=board_number)
-    if NFL_table:
-        print("inserting into money table")
-        NFL_table.save()
-    return Response(status=status.HTTP_202_ACCEPTED)
-
-@api_view(['POST'])
-def addToMarchMadnessTable(request,board_number):
-    first_round = request.data.get("first_round")
-    second_round = request.data.get("second_round")
-    sweet_sixteen = request.data.get("sweet_sixteen")
-    elite_eight = request.data.get("elite_eight")
-    final_four = request.data.get("final_four")
-    championship = request.data.get("championship")
-    march_madness = MarchMadness(first_round = first_round,second_round=second_round,sweet_sixteen=sweet_sixteen,elite_eight=elite_eight,final_four = final_four,championship=championship,board_number=board_number)
-    if march_madness:
-        march_madness.save()
-    return Response(status=status.HTTP_202_ACCEPTED)
 
 @api_view(['POST'])
 def addUserToBox(request,token,box_pk,board_number):

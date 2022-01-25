@@ -158,12 +158,12 @@ def create_board(request,token):
     print(data.data['email'])
     generate_code = random.randint(100,10000)
     board = Board(code = generate_code,type=type,name=board_name)
-    print(board.id)
     print('ceating board')
     winners_list = []
     losers_list = []
     total_pairs = []
     if board:
+        print(type)
         if type == "football":
             print("football")
             four = int(request.data.get("four"))

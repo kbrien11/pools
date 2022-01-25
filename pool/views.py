@@ -134,7 +134,7 @@ def create_board(request,token):
     print(data.data['email'])
     generate_code = random.randint(100,10000)
     board = Board(code = generate_code,type=type,name=board_name)
-    print(four = int(request.data.get("four")))
+    print(int(request.data.get("four")))
     print('ceating board')
     winners_list = []
     losers_list = []

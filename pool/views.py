@@ -295,6 +295,16 @@ def show_board(request,token,board_number):
         return Response({"board":serializer.data,"winning":numbers.winning,"losing":numbers.losing})
 
 @api_view(['GET'])
+def game_in_progress(request,board_number):
+    boxes = Box.objects.filter(board_number = board_number).all()
+    for box in boxes:
+        if box.username == "":
+            return Response({"data":True})
+        else:
+            pass
+    return Response({"data":False})
+
+@api_view(['GET'])
 def show_board_with_code(request,code):
     board_id = Board.objects.filter(code = code).first()
     if board_id:

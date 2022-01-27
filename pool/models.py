@@ -34,6 +34,7 @@ class NFL(models.Model):
     three = models.FloatField(blank=False)
     four = models.FloatField(blank=False)
     board_number = models.ForeignKey(Board, on_delete=models.CASCADE)
+    box_price = models.FloatField(blank=False, default=0)
 
 class MarchMadness(models.Model):
     first_round = models.FloatField(blank=False,default=0)
@@ -43,6 +44,7 @@ class MarchMadness(models.Model):
     final_four = models.FloatField(blank=False, default=0)
     championship = models.FloatField(blank=False, default=0)
     board_number = models.ForeignKey(Board, on_delete=models.CASCADE)
+    box_price = models.FloatField(blank=False, default=0)
 
 class Winnings(models.Model):
     user_pk = models.ForeignKey(User, on_delete=models.CASCADE, null=True, default="")

@@ -125,119 +125,145 @@ def login(request):
 
 
 
+def valid_board_name_validator(x):
+    if x.isalnum():
+        print(x)
+        return True
+    else:
+        return False
+
+
 @api_view(['POST'])
 def create_board(request,token):
-    print("hi")
     type = request.data.get("type")
+    customize = request.data.get("customize")
+    print(customize)
     board_name = request.data.get("name")
-    user = Token.objects.get(key=token).user
-    data = UserSerializer(user, many=False)
-    print(data.data['email'])
-    generate_code = random.randint(100,10000)
-    board = Board(code = generate_code,type=type,name=board_name)
-    print(int(request.data.get("four")))
-    print('ceating board')
-    winners_list = []
-    losers_list = []
-    total_pairs = []
-    if board:
-        if type == "football":
-            print("football")
-            four = int(request.data.get("four"))
-            three = int(request.data.get("three"))
-            two = int(request.data.get("two"))
-            one = int(request.data.get("one"))
-            NFL_table = NFL(four=four, three=three, two=two, one=one, board_number=board)
-            if NFL_table.one >=0 and NFL_table.two >=0 and NFL_table.three >=0 and NFL_table.four >=0:
-                print("inserting into money table")
-                board.save()
-                NFL_table.save()
-
-            else:
-                print("not adding to board table")
-                return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        elif type == "basketball":
-            print("basketball")
-            first_round = int(request.data.get("first_round"))
-            second_round = int(request.data.get("second_round"))
-            sweet_sixteen = int(request.data.get("sweet_sixteen"))
-            elite_eight = int(request.data.get("elite_eight"))
-            final_four = int(request.data.get("final_four"))
-            championship = int(request.data.get("championship"))
-            march_madness = MarchMadness(first_round=first_round, second_round=second_round,
-                                         sweet_sixteen=sweet_sixteen,
-                                         elite_eight=elite_eight, final_four=final_four, championship=championship,
-                                         board_number=board)
-            if march_madness.first_round >=0 and march_madness.second_round >=0 and march_madness.sweet_sixteen >=0 and march_madness.elite_eight >=0 and march_madness.final_four >=0 and march_madness.championship >=0:
-                board.save()
-                march_madness.save()
-
-            else:
-                return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        print(board)
-        new_admin = Admin(board_number = board,user_pk = user,creator=True)
-        new_admin.save()
-        win = [str(i) for i in range(10)]
-        los = [str(i) for i in range(10)]
-        random.shuffle(win)
-        random.shuffle(los)
-
-        print(data.data['email'])
-        for j in win:
-            winners_list.append(j)
-
-        for i in los:
-            losers_list.append(i)
-
-        first = 0
-        last = len(losers_list)
-
-        while first < last:
-            for num in winners_list:
-                pair = num, losers_list[first]
-                total_pairs.append(pair)
-            first += 1
-
-        for i in total_pairs:
-            new_boxes = Box(pair = i,board_number = board)
-
-            if new_boxes:
-                new_boxes.save()
-                print( Response(status=status.HTTP_202_ACCEPTED))
-            else:
-                print(Response(status = status.HTTP_400_BAD_REQUEST))
-
-        data = {
-            'Messages': [
-                {
-                    "From": {
-                        "Email": "kbrien11@gmail.com",
-                        "Name": "Keith"
-                    },
-                    "To": [
-                        {
-                            "Email": data.data['email'],
-                            "Name": data.data['first_name']
-                        }
-                    ],
-                    "Subject": "Thank you for Creating a new league",
-                    "TextPart": "My first Mailjet email",
-                    "HTMLPart": "<h3> Hi {}, thank you for creating a new board. Feel free to share this code --- {}--- and or link ---https://poolboxes.netlify.app/--- with your friends.Goodluck on your boxes".format( str(data.data['first_name']),
-                        str(board.code))
-
-                }
-            ]
-        }
-        result = mailjet.send.create(data=data)
-        print(result.json)
-        new_Numbers = GeneratedNumbers(winning=winners_list,losing=losers_list,board_pk=board.id)
-        new_Numbers.save()
-        new_Numbers.winning
-        return Response({"pairs":total_pairs,"board_nuber":board.id,"winningNumbers":new_Numbers.winning,"losingNumbers":new_Numbers.losing,"code":board.code})
-    else:
+    if not valid_board_name_validator(board_name):
         return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    else:
+        user = Token.objects.get(key=token).user
+        data = UserSerializer(user, many=False)
+        print(data.data['email'])
+        generate_code = random.randint(100,10000)
+        board = Board(code = generate_code,type=type,name=board_name)
+        print(board.id)
+        print('ceating board')
+        winners_list = []
+        losers_list = []
+        total_pairs = []
+        if board:
+            if type == "football":
+                print("football")
+                four = int(request.data.get("four"))
+                three = int(request.data.get("three"))
+                two = int(request.data.get("two"))
+                one = int(request.data.get("one"))
+                NFL_table = NFL(four=four, three=three, two=two, one=one, board_number=board)
+                if NFL_table.one >=0 and NFL_table.two >=0 and NFL_table.three >=0 and NFL_table.four >=0:
+                    print("inserting into money table")
+                    board.save()
+                    NFL_table.save()
+
+                else:
+                    print("not adding to board table")
+                    return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            elif type == "basketball":
+                print("basketball")
+                if customize == True:
+                    first_round = int(request.data.get("first_round"))
+                    second_round = int(request.data.get("second_round"))
+                    sweet_sixteen = int(request.data.get("sweet_sixteen"))
+                    elite_eight = int(request.data.get("elite_eight"))
+                    final_four = int(request.data.get("final_four"))
+                    price = int(request.data.get("price"))
+                    championship = int(request.data.get("championship"))
+                    march_madness = MarchMadness(first_round=first_round, second_round=second_round,
+                                                 sweet_sixteen=sweet_sixteen,
+                                                 elite_eight=elite_eight, final_four=final_four, championship=championship,
+                                                 board_number=board,price=price)
+                    if march_madness.first_round >= 0 and march_madness.second_round >= 0 and march_madness.sweet_sixteen >= 0 and march_madness.elite_eight >= 0 and march_madness.final_four >= 0 and march_madness.championship >= 0:
+                        board.save()
+                        march_madness.save()
+
+                    else:
+                        return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                else:
+                    price = int(request.data.get("price"))
+                    march_madness = MarchMadness(first_round=price *.5, second_round=price *1,
+                                                 sweet_sixteen=price *2,
+                                                 elite_eight=price*4, final_four=price*8, championship=price*20,
+                                                 board_number=board, box_price=price)
+
+                    if march_madness.first_round >= 0 and march_madness.second_round >= 0 and march_madness.sweet_sixteen >= 0 and march_madness.elite_eight >= 0 and march_madness.final_four >= 0 and march_madness.championship >= 0:
+                        board.save()
+                        march_madness.save()
+
+                    else:
+                        return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            print(board)
+            new_admin = Admin(board_number = board,user_pk = user,creator=True)
+            new_admin.save()
+            win = [str(i) for i in range(10)]
+            los = [str(i) for i in range(10)]
+            random.shuffle(win)
+            random.shuffle(los)
+
+            print(data.data['email'])
+            for j in win:
+                winners_list.append(j)
+
+            for i in los:
+                losers_list.append(i)
+
+            first = 0
+            last = len(losers_list)
+
+            while first < last:
+                for num in winners_list:
+                    pair = num, losers_list[first]
+                    total_pairs.append(pair)
+                first += 1
+
+            for i in total_pairs:
+                new_boxes = Box(pair = i,board_number = board)
+
+                if new_boxes:
+                    new_boxes.save()
+                    print( Response(status=status.HTTP_202_ACCEPTED))
+                else:
+                    print(Response(status = status.HTTP_400_BAD_REQUEST))
+
+            data = {
+                'Messages': [
+                    {
+                        "From": {
+                            "Email": "kbrien11@gmail.com",
+                            "Name": "Keith"
+                        },
+                        "To": [
+                            {
+                                "Email": data.data['email'],
+                                "Name": data.data['first_name']
+                            }
+                        ],
+                        "Subject": "Thank you for Creating a new league",
+                        "TextPart": "My first Mailjet email",
+                        "HTMLPart": "<h3> Hi {}, thank you for creating a new board. Feel free to share this code --- {}--- and or link ---https://poolboxes.netlify.app/--- with your friends.Goodluck on your boxes".format( str(data.data['first_name']),
+                            str(board.code))
+
+                    }
+                ]
+            }
+            result = mailjet.send.create(data=data)
+            print(result.json)
+            new_Numbers = GeneratedNumbers(winning=winners_list,losing=losers_list,board_pk=board.id)
+            new_Numbers.save()
+            new_Numbers.winning
+            return Response({"pairs":total_pairs,"board_nuber":board.id,"winningNumbers":new_Numbers.winning,"losingNumbers":new_Numbers.losing,"code":board.code})
+        else:
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 

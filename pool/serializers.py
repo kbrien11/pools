@@ -23,12 +23,12 @@ class GeneratedNumbersSerializer(serializers.ModelSerializer):
 class NFLSerializer(serializers.ModelSerializer):
     class Meta:
         model = NFL
-        fields = ['id','one','two','three','four','board_number']
+        fields = ['id','one','two','three','four','board_number','box_price']
 
 class MarchMadnessSerializer(serializers.ModelSerializer):
     class Meta:
         model = MarchMadness
-        fields = ['id','first_round','second_round','sweet_sixteen','elite_eight','final_four','championship','board_number']
+        fields = ['id','first_round','second_round','sweet_sixteen','elite_eight','final_four','championship','board_number','box_price']
 
 class WinningsSerializer(serializers.ModelSerializer):
     class Meta:

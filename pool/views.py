@@ -117,10 +117,10 @@ def login(request):
             return Response({'token': token.key})
         else:
             print("error logging in")
-            return Response({"error": "invalid password"})
+            return Response({"passwordError": "invalid password"})
     else:
         print("email is wrong")
-        return Response({"error": "invalid email"})
+        return Response({"EmailError": "invalid email"})
 
 
 
@@ -155,11 +155,19 @@ def create_board(request,token):
         if board:
             if type == "football":
                 print("football")
+                price = int(request.data.get("price"))
+                total_price = price*100
+
                 four = int(request.data.get("four"))
                 three = int(request.data.get("three"))
                 two = int(request.data.get("two"))
                 one = int(request.data.get("one"))
-                NFL_table = NFL(four=four, three=three, two=two, one=one, board_number=board)
+                four_decimail = four/100
+                three_decimail = three / 100
+                two_decimail = two / 100
+                one_decimail = one / 100
+                print(total_price)
+                NFL_table = NFL(four=total_price*four_decimail, three=total_price*three_decimail, two=total_price*two_decimail , one= total_price*one_decimail, board_number=board,box_price=price)
                 if NFL_table.one >=0 and NFL_table.two >=0 and NFL_table.three >=0 and NFL_table.four >=0:
                     print("inserting into money table")
                     board.save()

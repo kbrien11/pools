@@ -137,6 +137,7 @@ def valid_board_name_validator(x):
 def create_board(request,token):
     type = request.data.get("type")
     customize = request.data.get("customize")
+    price = request.data.get("price")
     print(customize)
     board_name = request.data.get("name")
     if not valid_board_name_validator(board_name):
@@ -146,7 +147,7 @@ def create_board(request,token):
         data = UserSerializer(user, many=False)
         print(data.data['email'])
         generate_code = random.randint(100,10000)
-        board = Board(code = generate_code,type=type,name=board_name)
+        board = Board(code = generate_code,type=type,name=board_name,box_price=price)
         print(board.id)
         print('ceating board')
         winners_list = []

@@ -258,7 +258,7 @@ def create_board(request,token):
                         ],
                         "Subject": "Thank you for Creating a new league",
                         "TextPart": "My first Mailjet email",
-                        "HTMLPart": "<h3> Hi {}, thank you for creating a new board. Feel free to share this code --- {}--- and or link ---https://poolboxes.netlify.app/--- with your friends.Goodluck on your boxes".format( str(data.data['first_name']),
+                        "HTMLPart": "<h3> Hi {}, thank you for creating a new board. Feel free to share this code --- {}--- and or link ---https://poolboxes.netlify.app/play--- with your friends.Goodluck on your boxes".format( str(data.data['first_name']),
                             str(board.code))
 
                     }

@@ -421,7 +421,15 @@ def get_user_name(request,pk):
 
 
 
-
+@api_view(['GET'])
+def  price_per_box(request,board_number):
+    board = Board.objects.filter(id = board_number).first()
+    seriazlier = BoardSerializer(board,many = False)
+    price = seriazlier.data['box_price']
+    if price:
+        return Response({"price":price})
+    else:
+        return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 def addMoneyToWinners():

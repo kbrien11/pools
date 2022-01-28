@@ -17,6 +17,7 @@ class Board(models.Model):
     code = models.IntegerField(null=False,default=0)
     type = models.CharField(default="", max_length=10)
     name = models.CharField(default="" , max_length=20,unique=True,null=False)
+    box_price = models.FloatField(blank=False, default=0)
 
 class Box(models.Model):
    user_pk = models.ForeignKey(User, on_delete=models.CASCADE,null=True , default="")

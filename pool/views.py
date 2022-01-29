@@ -426,6 +426,7 @@ def get_user_name(request,pk):
 def price_per_box(request,board_number):
     board = Board.objects.filter(id = board_number).first()
     seriazlier = BoardSerializer(board,many = False)
+    print(seriazlier.data)
     price = seriazlier.data['box_price']
     print(price)
     if price:

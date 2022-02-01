@@ -477,7 +477,7 @@ def addMoneyToWinners():
                                     box_update.hit = True
                                     box_update.count +=1
                                     box_update.save(update_fields=['hit','count'])
-                                    print(k, v, box['pair'], box['id'],box_update.hit)
+                                    print(k, v, box['pair'], box['id'],box_update.hit,box['username'])
                                     add_money_to_user = Winnings.objects.filter(user_pk=box['user_pk'],board_pk =box['board_number']).first()
                                     if NFL_ser.data[k] is not None:
                                         if add_money_to_user:

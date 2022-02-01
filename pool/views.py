@@ -295,7 +295,7 @@ def addUserToBox(request,token,box_pk,board_number):
                 if serializer.validated_data.get('user_pk') is None:
                     serializer.validated_data['user_pk'] =user
                     serializer.validated_data['username'] =data.data['username']
-
+                    serializer.validated_data['first_name'] = data.data['first_name']
 
                     if serializer.validated_data['user_pk'] ==user:
 
@@ -487,7 +487,7 @@ def addMoneyToWinners():
                                             print(user)
                                         else:
                                             user_obj = User.objects.filter(pk = box['user_pk']).first()
-                                            winner = Winnings(user_pk =  user_obj,balance = NFL_ser.data[k],username=box['username'],board_pk=str(box['board_number']))
+                                            winner = Winnings(user_pk =  user_obj,balance = NFL_ser.data[k],username=box['username'],board_pk=str(box['board_number']),first_name=box['first_name'])
                                             winner.save()
                                     else:
                                         print("money board is empty")

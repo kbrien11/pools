@@ -456,7 +456,13 @@ def addMoneyToWinners():
                         print(i["OT"])
                         print(type(i["OT"]))
                         winning_pair["four"] = tuple(i["OT"])
+                        winning_pair["one"] = tuple(i['first'])
+                        winning_pair["two"] = tuple(i["second"])
+                        winning_pair["three"] = tuple(i["third"])
                     elif "2OT" in i:
+                        winning_pair["one"] = tuple(i['first'])
+                        winning_pair["two"] = tuple(i["second"])
+                        winning_pair["three"] = tuple(i["third"])
                         winning_pair["four"] = tuple(i["2OT"])
                     else:
                         winning_pair["one"] = tuple(i['first'])

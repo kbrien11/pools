@@ -8,7 +8,7 @@ from rest_framework import serializers
 class BoardSerializer(serializers.ModelSerializer):
     class Meta:
         model = Board
-        fields =['id','code','type','name']
+        fields =['id','code','type','name','box_price']
 
 class AdminSerializer(serializers.ModelSerializer):
     class Meta:

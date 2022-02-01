@@ -24,6 +24,7 @@ class Box(models.Model):
    pair = models.CharField(max_length=10,blank=False)
    board_number = models.ForeignKey(Board, on_delete=models.CASCADE)
    username = models.CharField(default="",max_length=42)
+   first_name = models.CharField(default="", max_length=42)
    balance = models.FloatField(default=0)
    hit = models.BooleanField(default=False)
    count = models.IntegerField(default=0)
@@ -51,6 +52,7 @@ class Winnings(models.Model):
     user_pk = models.ForeignKey(User, on_delete=models.CASCADE, null=True, default="")
     balance = models.FloatField(default=0)
     username = models.CharField(default="", max_length=42)
+    first_name = models.CharField(default="", max_length=42)
     board_pk = models.CharField(default="", max_length=42)
 
 class Admin(models.Model):

@@ -451,10 +451,18 @@ def addMoneyToWinners():
             box_data_ser = BoxSerialiazer(boxes,many=True)
             if box_data_ser:
                 for i in scores:
-                    winning_pair["one"] = tuple(i['first'])
-                    winning_pair["two"] = tuple(i["second"])
-                    winning_pair["three"] = tuple(i["third"])
-                    winning_pair["four"] = tuple(i["fourth"])
+                    print(i)
+                    if "OT" in i:
+                        print(i["OT"])
+                        print(type(i["OT"]))
+                        winning_pair["four"] = tuple(i["OT"])
+                    elif "2OT" in i:
+                        winning_pair["four"] = tuple(i["2OT"])
+                    else:
+                        winning_pair["one"] = tuple(i['first'])
+                        winning_pair["two"] = tuple(i["second"])
+                        winning_pair["three"] = tuple(i["third"])
+                        winning_pair["four"] = tuple(i["fourth"])
                     for box in box_data_ser.data:
                         for k, v in winning_pair.items():
                             if box['pair'] ==str(v):

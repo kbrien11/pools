@@ -33,12 +33,12 @@ class MarchMadnessSerializer(serializers.ModelSerializer):
 class WinningsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Winnings
-        fields = ['id','user_pk','balance','username','board_pk']
+        fields = ['id','user_pk','balance','username','board_pk','first_name']
 
 class BoxSerialiazer(serializers.ModelSerializer):
     class Meta:
         model = Box
-        fields = ['id','pair','board_number','user_pk','username','balance','hit','count']
+        fields = ['id','pair','board_number','user_pk','username','balance','hit','count','first_name']
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:

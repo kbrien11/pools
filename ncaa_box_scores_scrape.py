@@ -28,18 +28,18 @@ Outputs: List of dictionaries with game scores; end_score key holds pairing of e
 
 	gm_list = []
 	for i,game in enumerate(games):
-    	if 'NCAA' in (game.find_element_by_class_name('desc').text):
-	        gm = {}
-	        gm['id'] = i
-	        gm['date'] = day
-	        gm['round'] = game.find_element_by_class_name('desc').text.split('-')[-1].strip()
-	        l = game.find_element_by_class_name('loser').text.strip()
-	        w = game.find_element_by_class_name('winner').text.strip()
-	        gm['lteam'] = re.sub('[\d]','',re.sub('[(]\d+[)]','',re.sub('OT|Final','',l))).strip().replace("-",' ')
-	        gm['lscore'] = int(re.sub('[^\d]','',re.sub('[(]\d+[)]','',re.sub('OT|Final','',l))))
-	        gm['wteam'] = re.sub('[\d]','',re.sub('[(]\d+[)]','',re.sub('OT|Final','',w))).strip().replace("-",' ')
-	        gm['wscore'] = int(re.sub('[^\d]','',re.sub('[(]\d+[)]','',re.sub('OT|Final','',w))))
-	        gm['end_score'] = (str(gm['wscore'])[-1],str(gm['lscore'])[-1])
-	        gm_list.append(gm)
+    		if 'NCAA' in (game.find_element_by_class_name('desc').text):
+			gm = {}
+			gm['id'] = i
+			gm['date'] = day
+			gm['round'] = game.find_element_by_class_name('desc').text.split('-')[-1].strip()
+			l = game.find_element_by_class_name('loser').text.strip()
+			w = game.find_element_by_class_name('winner').text.strip()
+			gm['lteam'] = re.sub('[\d]','',re.sub('[(]\d+[)]','',re.sub('OT|Final','',l))).strip().replace("-",' ')
+			gm['lscore'] = int(re.sub('[^\d]','',re.sub('[(]\d+[)]','',re.sub('OT|Final','',l))))
+			gm['wteam'] = re.sub('[\d]','',re.sub('[(]\d+[)]','',re.sub('OT|Final','',w))).strip().replace("-",' ')
+			gm['wscore'] = int(re.sub('[^\d]','',re.sub('[(]\d+[)]','',re.sub('OT|Final','',w))))
+			gm['end_score'] = (str(gm['wscore'])[-1],str(gm['lscore'])[-1])
+			gm_list.append(gm)
 	return gm_list
 

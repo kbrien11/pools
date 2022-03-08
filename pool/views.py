@@ -510,12 +510,15 @@ def addMoneyToWinnersForMarchMadness():
     dates_ser = MarchMadnessDatesSerializer(game_dates_list,many=True)
     for i in dates_ser.data:
         print(i)
-        if i['visited'] ==True:
+        if i['visited'] ==True and i['date'] =='2021,3,20' :
             print("{} has already been visited".format(i['date']))
             continue
         else:
             winning_pair = {}
             scores = open_mm_link(i['date'])
+            if len(scores) <1:
+                print("data games on this day {}".format(i['date']))
+                continue
             count = 0
             scores_pairs = []
             date_to_update = MarchMadnessDates.objects.filter(id=i['id']).first()

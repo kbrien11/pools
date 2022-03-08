@@ -1,4 +1,4 @@
-rom django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand, CommandError
 from ...views import addMoneyToWinners,addMoneyToWinnersForMarchMadness,addMoneyToWinnersSingle
 
 from apscheduler.schedulers.blocking import BlockingScheduler

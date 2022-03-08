@@ -71,4 +71,8 @@ class GeneratedNumbers(models.Model):
 class ScrapeData(models.Model):
     home_team = models.CharField(max_length=20,blank=False)
     away_team = models.CharField(max_length=20, blank=False)
+    
 
+class MarchMadnessDates(models.Model):
+    date = models.CharField(max_length=20,blank=False)
+    visited = models.BooleanField(default=False)

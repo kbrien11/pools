@@ -1,5 +1,6 @@
-from django.core.management.base import BaseCommand, CommandError
-from ...views import addMoneyToWinners
+rom django.core.management.base import BaseCommand, CommandError
+from ...views import addMoneyToWinners,addMoneyToWinnersForMarchMadness,addMoneyToWinnersSingle
+
 from apscheduler.schedulers.blocking import BlockingScheduler
 import subprocess
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -20,10 +21,10 @@ class Command(BaseCommand):
 
        sched = BlockingScheduler()
 
-       @sched.scheduled_job(  'interval', minutes=2)
+       @sched.scheduled_job(  'interval', minutes=1)
        def scheduled_job():
-           print('This job is to runin 2 minutes.')
-           addMoneyToWinners()
-           subprocess.call(('python manage.py clock'), shell = True, close_fds = True)
+           print('This job is to run on jan 13th at 12:10.')
+           addMoneyToWinnersForMarchMadness()
+           
 
        sched.start()

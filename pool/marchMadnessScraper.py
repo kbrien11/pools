@@ -21,7 +21,6 @@ import environ
 CHROME_DRIVER = os.environ.get("CHROME_DRIVER")
 
 def open_mm_link(i):
-            try:
                 date = i.split(",")
                 year = date[0]
                 month = date[1]
@@ -44,20 +43,15 @@ def open_mm_link(i):
                         gm['date'] = game_date
                         gm['round'] = game.find_element_by_class_name('desc').text.split('-')[-1].strip()
                         l = game.find_element_by_class_name('loser').text.strip()
+                        w = game.find_element_by_class_name('winner').text.strip()
+                        gm['lteam'] = re.sub('[\d]', '', re.sub('[(]\d+[)]', '', re.sub('OT|Final', '', l))).strip().replace("-", ' ')
+                        gm['lscore'] = int(float(re.sub('[^\d]', '', re.sub('[(]\d+[)]', '', re.sub('OT|Final', '', l)))))
 
-                        if game.find_element_by_class_name('winner').text.strip() is not None:
-                            w = game.find_element_by_class_name('winner').text.strip()
-                            gm['lteam'] = re.sub('[\d]', '', re.sub('[(]\d+[)]', '', re.sub('OT|Final', '', l))).strip().replace("-", ' ')
-                            gm['lscore'] = int(float(re.sub('[^\d]', '', re.sub('[(]\d+[)]', '', re.sub('OT|Final', '', l)))))
+                        gm['wteam'] = re.sub('[\d]', '', re.sub('[(]\d+[)]', '', re.sub('OT|Final', '', w))).strip().replace("-", ' ')
+                        gm['wscore'] = int(float(re.sub('[^\d]', '', re.sub('[(]\d+[)]', '', re.sub('OT|Final', '', w)))))
+                        gm['end_score'] = (str(gm['wscore'])[-1], str(gm['lscore'])[-1])
+                        gm_list.append(gm)
 
-                            gm['wteam'] = re.sub('[\d]', '', re.sub('[(]\d+[)]', '', re.sub('OT|Final', '', w))).strip().replace("-", ' ')
-                            gm['wscore'] = int(float(re.sub('[^\d]', '', re.sub('[(]\d+[)]', '', re.sub('OT|Final', '', w)))))
-                            gm['end_score'] = (str(gm['wscore'])[-1], str(gm['lscore'])[-1])
-                            gm_list.append(gm)
-                        else:
-                            print("error")
-                            continue
-            except NoSuchElementException:
-                print("error")
+
 
                 return gm_list

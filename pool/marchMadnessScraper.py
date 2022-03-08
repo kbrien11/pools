@@ -18,7 +18,7 @@ import environ
 
 #need to change input date with scraped dates
 # game_date = datetime.date(2021,3,19)
-
+CHROME_DRIVER = os.environ.get("CHROME_DRIVER")
 
 def open_mm_link(i):
             try:
@@ -29,7 +29,7 @@ def open_mm_link(i):
 
                 opts = Options()
                 opts.add_argument('--headless')
-                web = webdriver.Chrome(options=opts,executable_path=r"C:\Users\kbrie\Downloads\chromedriver_win32\chromedriver") #can set executable path if needed here: executable_path='chromedriver'\
+                web = webdriver.Chrome(options=opts,executable_path=CHROME_DRIVER) #can set executable path if needed here: executable_path='chromedriver'\
                 game_date = datetime.date(int(year),int(month),int(day))
 
 

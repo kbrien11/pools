@@ -510,8 +510,9 @@ def addMoneyToWinnersForMarchMadness():
     dates_ser = MarchMadnessDatesSerializer(game_dates_list,many=True)
     for i in dates_ser.data:
         print(i)
-        if i['visited'] ==True and i['date'] =='2021,3,20' :
+        if i['visited'] ==True :
             print("{} has already been visited".format(i['date']))
+            print("going to the next day")
             continue
         else:
             winning_pair = {}

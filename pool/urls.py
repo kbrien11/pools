@@ -23,7 +23,9 @@ urlpatterns = [
     path('validate_creator/<token>/<board_number>', views.validate_creator),
     path('userboard/<token>',views.getBoardFromUser),
     path('game_in_progress/<board_number>',views.game_in_progress),
-    path('getPriceOfBox/<board_number>',views.price_per_box)
+    path('getPriceOfBox/<board_number>',views.price_per_box),
+    path('addDate',views.insertDatesForMarchMadness),
+    path('moneyOwed/<boardPk>', views.get_money_owed)
 
 
 

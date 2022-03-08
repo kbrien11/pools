@@ -634,9 +634,11 @@ def get_money_owed(request,boardPk):
     output = {}
     board = Board.objects.filter(id=boardPk).first()
     board_ser = BoardSerializer(board,many=False)
+    print(board_ser.data)
     amount = board_ser.data['box_price']
     boxes = Box.objects.filter(board_number = boardPk).all()
     boxes_ser = BoxSerialiazer(boxes,many = True)
+    print(boxes_ser.data)
     if boxes_ser:
         for i in boxes_ser.data:
             if i['username'] in output:
@@ -644,7 +646,7 @@ def get_money_owed(request,boardPk):
             else:
                 output[i['username']] = int(amount)
 
-
+        print(output)
         return Response({"data":output})
     else:
         return Response({"error":"error"})

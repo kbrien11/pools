@@ -2,7 +2,7 @@
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
+
 from .models import ScrapeData
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import Select

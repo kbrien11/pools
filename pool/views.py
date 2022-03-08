@@ -629,7 +629,7 @@ def validate_creator(request,token,board_number):
     else:
         return Response({"error2": "error2"})
 
-
+@api_view(['get'])
 def get_money_owed(request,boardPk):
     output = {}
     board = Board.objects.filter(id=boardPk).first()

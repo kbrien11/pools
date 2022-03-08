@@ -5,9 +5,10 @@ from django.contrib.auth.hashers import check_password,make_password
 from rest_framework.views import Response
 from .models import Box,Board
 from rest_framework.decorators import action,api_view
-from .models import Board,Box,NFL,Winnings,MarchMadness,Admin,GeneratedNumbers
+from .models import Board,Box,NFL,Winnings,MarchMadness,Admin,GeneratedNumbers,MarchMadnessDates
 from rest_framework import viewsets,generics
 from django.contrib.auth import authenticate
+from .marchMadnessScraper import open_mm_link
 from rest_framework.authtoken.models import Token
 from rest_framework import status
 import random
@@ -21,7 +22,7 @@ from dateutil.parser import parse
 from mailjet_rest import Client
 import os
 import environ
-from .serializers import BoardSerializer,UserSerializer,BoxSerialiazer,NFLSerializer,WinningsSerializer,MarchMadnessSerializer,AdminSerializer,GeneratedNumbersSerializer
+from .serializers import BoardSerializer,UserSerializer,BoxSerialiazer,NFLSerializer,WinningsSerializer,MarchMadnessSerializer,AdminSerializer,GeneratedNumbersSerializer,,MarchMadnessDatesSerializer
 
 api_key = os.environ.get("API_KEY")
 api_secret = os.environ.get("API_SECRET")
@@ -504,6 +505,101 @@ def addMoneyToWinners():
         return
 
 
+def addMoneyToWinnersForMarchMadness():
+    game_dates_list = MarchMadnessDates.objects.all()
+    dates_ser = MarchMadnessDatesSerializer(game_dates_list,many=True)
+    for i in dates_ser.data:
+        print(i)
+        if i['visited'] ==True :
+            print("{} has already been visited".format(i['date']))
+            continue
+        else:
+            winning_pair = {}
+            scores = open_mm_link(i['date'])
+            count = 0
+            scores_pairs = []
+            date_to_update = MarchMadnessDates.objects.filter(id=i['id']).first()
+            date_to_update.visited = True
+            date_to_update.save(update_fields=['visited'])
+            boards = Board.objects.filter(type='basketball').all()
+            board_ser = BoardSerializer(boards,many=True)
+            if board_ser:
+                for pk in board_ser.data:
+                    monies = MarchMadness.objects.filter(board_number = pk['id']).first()
+                    MM_ser = MarchMadnessSerializer(monies,many=False)
+                    boxes = Box.objects.filter(board_number = pk['id']).all()
+                    box_data_ser = BoxSerialiazer(boxes,many=True)
+                    if box_data_ser:
+                        if scores is not None:
+                            for i in scores:
+                                if i['round'] == 'First Round':
+                                  winning_pair["first_round"] = tuple(i['round'])
+
+                                elif i['round'] == 'Second Round':
+                                   winning_pair["second_round"] = tuple(i["round"])
+
+                                elif i['round'] == 'Regional Semifinal':
+                                    winning_pair["sweet_sixteen"] = tuple(i["round"])
+
+                                elif i['round'] == 'Regional Final':
+                                   winning_pair["elite_eight"] = tuple(i["round"])
+
+                                elif i['round'] == 'National Semifinal':
+                                   winning_pair["final_four"] = tuple(i["round"])
+
+                                else:
+                                   winning_pair["championship"] = tuple(i["round"])
+
+
+
+                                for box in box_data_ser.data:
+                                    for k,v in winning_pair.items():
+                                     if box['pair'] == str(i['end_score']):
+                                         count +=1
+                                         print(i['end_score'])
+                                         print(box['pair'],'match',count)
+                                         box_update = Box.objects.filter(board_number = pk['id'],id=box['id']).first()
+                                         if box_update.user_pk is not None:
+                                            box_update.hit = True
+                                            box_update.count +=1
+                                            box_update.save(update_fields=['hit','count'])
+                                            print(winning_pair[k], box['pair'], box['id'],box_update.hit)
+                                            add_money_to_user = Winnings.objects.filter(user_pk=box['user_pk'],board_pk =box['board_number']).first()
+                                            if MM_ser.data[k] is not None:
+                                                if add_money_to_user:
+                                                    add_money_to_user.balance += MM_ser.data[k]
+                                                    add_money_to_user.save(update_fields=['balance'])
+                                                    user = User.objects.filter(pk=box['user_pk']).first()
+                                                    print(user)
+                                                else:
+                                                    user_obj = User.objects.filter(pk = box['user_pk']).first()
+                                                    winner = Winnings(user_pk =  user_obj,balance = MM_ser.data[k],username=box['username'],board_pk=str(box['board_number']),first_name=box['first_name'])
+                                                    winner.save()
+                                            else:
+                                                print("money board is empty")
+                                                pass
+                                         else:
+                                            print("board isnt fully filled out")
+                                            pass
+
+                                        #        /SEND EMAIL TO NOTIFY USER THEY WON
+                                    else:
+                                      continue
+                        else:
+                            print('scores are none')
+
+    print("all board have been scraped ad updated")
+    return
+
+@api_view(['POST'])
+def insertDatesForMarchMadness(request):
+    date = request.data.get('date')
+    new_date = MarchMadnessDates(date = date)
+    if new_date:
+        new_date.save()
+        return Response({"date":new_date.date})
+    else:
+        print("error adding {]".format(date))
 
 
 @api_view(['GET'])
@@ -532,6 +628,26 @@ def validate_creator(request,token,board_number):
             return Response({"error":"error"})
     else:
         return Response({"error2": "error2"})
+
+
+def get_money_owed(request,boardPk):
+    output = {}
+    board = Board.objects.filter(id=boardPk).first()
+    board_ser = BoardSerializer(board,many=False)
+    amount = board_ser.data['box_price']
+    boxes = Box.objects.filter(board_number = boardPk).all()
+    boxes_ser = BoxSerialiazer(boxes,many = True)
+    if boxes_ser:
+        for i in boxes_ser.data:
+            if i['username'] in output:
+                output[i['username']] += int(amount)
+            else:
+                output[i['username']] = int(amount)
+
+
+        return Response({"data":output})
+    else:
+        return Response({"error":"error"})
 
 # @api_view(['POST'])
 # def share_code(request):

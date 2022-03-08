@@ -22,7 +22,7 @@ from dateutil.parser import parse
 from mailjet_rest import Client
 import os
 import environ
-from .serializers import BoardSerializer,UserSerializer,BoxSerialiazer,NFLSerializer,WinningsSerializer,MarchMadnessSerializer,AdminSerializer,GeneratedNumbersSerializer,,MarchMadnessDatesSerializer
+from .serializers import BoardSerializer,UserSerializer,BoxSerialiazer,NFLSerializer,WinningsSerializer,MarchMadnessSerializer,AdminSerializer,GeneratedNumbersSerializer,MarchMadnessDatesSerializer
 
 api_key = os.environ.get("API_KEY")
 api_secret = os.environ.get("API_SECRET")

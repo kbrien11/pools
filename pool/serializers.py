@@ -39,6 +39,11 @@ class BoxSerialiazer(serializers.ModelSerializer):
     class Meta:
         model = Box
         fields = ['id','pair','board_number','user_pk','username','balance','hit','count','first_name']
+        
+class MarchMadnessDatesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MarchMadnessDates
+        fields = ['id','date','visited']
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:

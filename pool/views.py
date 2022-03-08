@@ -510,7 +510,7 @@ def addMoneyToWinnersForMarchMadness():
     dates_ser = MarchMadnessDatesSerializer(game_dates_list,many=True)
     for i in dates_ser.data:
         print(i)
-        if i['visited'] ==True :
+        if i['visited'] ==True:
             print("{} has already been visited".format(i['date']))
             continue
         else:
@@ -530,7 +530,7 @@ def addMoneyToWinnersForMarchMadness():
                     boxes = Box.objects.filter(board_number = pk['id']).all()
                     box_data_ser = BoxSerialiazer(boxes,many=True)
                     if box_data_ser:
-                        if scores is not None:
+
                             for i in scores:
                                 if i['round'] == 'First Round':
                                   winning_pair["first_round"] = tuple(i['round'])
@@ -585,11 +585,11 @@ def addMoneyToWinnersForMarchMadness():
                                         #        /SEND EMAIL TO NOTIFY USER THEY WON
                                     else:
                                       continue
-                        else:
-                            print('scores are none')
+
 
     print("all board have been scraped ad updated")
     return
+
 
 @api_view(['POST'])
 def insertDatesForMarchMadness(request):

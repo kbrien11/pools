@@ -406,7 +406,7 @@ def verifyBox(request,token,box_id,board_number):
         if box_data.user_pk is None:
             return Response({"user":username.username})
         else:
-            return Response({"error":"error"})
+            return Response({"userError":"error"})
     else:
         return Response({"error": "error"})
 

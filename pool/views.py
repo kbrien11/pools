@@ -655,6 +655,25 @@ def get_money_owed(request,boardPk):
     else:
         return Response({"error":"error"})
 
+
+
+@api_view(['GET'])
+def totalBoxesLeft(request,board_number):
+    count =0
+    boxes = Box.objects.filter(board_number = board_number).all()
+    boxes_ser = BoxSerialiazer(boxes,many=True)
+
+    if boxes_ser:
+        for i in boxes_ser.data:
+            print(i)
+            if i['username'] == "":
+                count += 1
+            else:
+                print("{} taken".format(i['id']))
+        return Response({"count":count})
+    else:
+        return Response({"error":"errror"})
+
 # @api_view(['POST'])
 # def share_code(request):
 #     board_pk = request.data.get('board_pk')

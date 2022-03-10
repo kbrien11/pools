@@ -25,7 +25,8 @@ urlpatterns = [
     path('game_in_progress/<board_number>',views.game_in_progress),
     path('getPriceOfBox/<board_number>',views.price_per_box),
     path('addDate',views.insertDatesForMarchMadness),
-    path('moneyOwed/<boardPk>', views.get_money_owed)
+    path('moneyOwed/<boardPk>', views.get_money_owed),
+    path('totalBoxes/<board_number>',views.totalBoxesLeft)
 
 
 

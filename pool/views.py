@@ -638,23 +638,24 @@ def get_money_owed(request,boardPk):
     output = {}
     board = Board.objects.filter(id=boardPk).first()
     board_ser = BoardSerializer(board,many=False)
-    print(board_ser.data)
     amount = board_ser.data['box_price']
     boxes = Box.objects.filter(board_number = boardPk).all()
     boxes_ser = BoxSerialiazer(boxes,many = True)
-    print(boxes_ser.data)
     if boxes_ser:
-        for i in boxes_ser.data:
-            if i['username'] in output:
-                output[i['username']] += int(amount)
-            else:
-                output[i['username']] = int(amount)
+            for i in boxes_ser.data:
+                if i['username'] != "":
+                    if i['username'] in output:
+                        output[i['username']] += int(amount)
+                    else:
+                        output[i['username']] = int(amount)
 
-        print(output)
-        return Response({"data":output})
+                else:
+                    print("{} has has not been selected yet".format(i['id']))
+                    continue
+            return Response({"data":output})
+
     else:
         return Response({"error":"error"})
-
 
 
 @api_view(['GET'])

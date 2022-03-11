@@ -652,6 +652,7 @@ def get_money_owed(request,boardPk):
                 else:
                     print("{} has has not been selected yet".format(i['id']))
                     continue
+            sorted_d = sorted(output.items(), key = lambda x: x[1], reverse = True)
             return Response({"data":output})
 
     else:

@@ -20,6 +20,7 @@ urlpatterns = [
     path('validateName/<name>',views.validate_name),
     path('get_user_name/<pk>',views.get_user_name),
     path('leaderboard/<board_pk>',views.leaderboard),
+    path('leaderboardTotal/<board_pk>', views.leaderboard),
     path('validate_creator/<token>/<board_number>', views.validate_creator),
     path('userboard/<token>',views.getBoardFromUser),
     path('game_in_progress/<board_number>',views.game_in_progress),

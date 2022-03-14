@@ -615,6 +615,17 @@ def leaderboard(request,board_pk):
         if box['balance'] >0:
             output.append(box)
     print(output)
+    return Response({'data':output[:5]})
+
+@api_view(['GET'])
+def leaderboardTotal(request,board_pk):
+    output = []
+    boxes = Winnings.objects.filter(board_pk = str(board_pk)).order_by('-balance').all()
+    boxes_ser = WinningsSerializer(boxes,many=True)
+    for box in boxes_ser.data:
+        if box['balance'] >0:
+            output.append(box)
+    print(output)
     return Response({'data':output})
 
 @api_view(['GET'])

@@ -517,7 +517,7 @@ def addMoneyToWinnersForMarchMadness():
         else:
             winning_pair = {}
             scores = open_mm_link(i['date'])
-            if len(scores) <1:
+            if not scores:
                 print(" no data games on this day {} yet".format(i['date']))
                 continue
             count = 0

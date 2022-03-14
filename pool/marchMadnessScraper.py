@@ -36,22 +36,25 @@ def open_mm_link(i):
                 games = web.find_elements_by_xpath('//table[@class="teams"]')
 
                 gm_list = []
-                for i, game in enumerate(games):
-                     if 'NCAA' in (game.find_element_by_class_name('desc').text):
-                        gm = {}
-                        gm['id'] = i
-                        gm['date'] = game_date
-                        gm['round'] = game.find_element_by_class_name('desc').text.split('-')[-1].strip()
-                        l = game.find_element_by_class_name('loser').text.strip()
-                        w = game.find_element_by_class_name('winner').text.strip()
-                        gm['lteam'] = re.sub('[\d]', '', re.sub('[(]\d+[)]', '', re.sub('OT|Final', '', l))).strip().replace("-", ' ')
-                        gm['lscore'] = int(float(re.sub('[^\d]', '', re.sub('[(]\d+[)]', '', re.sub('OT|Final', '', l)))))
+                try:
+                    for i, game in enumerate(games):
+                         if 'NCAA' in (game.find_element_by_class_name('desc').text) and game.find_element_by_class_name('winner').text:
+                            gm = {}
+                            gm['id'] = i
+                            gm['date'] = game_date
+                            gm['round'] = game.find_element_by_class_name('desc').text.split('-')[-1].strip()
+                            l = game.find_element_by_class_name('loser').text.strip()
+                            w = game.find_element_by_class_name('winner').text.strip()
+                            gm['lteam'] = re.sub('[\d]', '', re.sub('[(]\d+[)]', '', re.sub('OT|Final', '', l))).strip().replace("-", ' ')
+                            gm['lscore'] = int(float(re.sub('[^\d]', '', re.sub('[(]\d+[)]', '', re.sub('OT|Final', '', l)))))
 
-                        gm['wteam'] = re.sub('[\d]', '', re.sub('[(]\d+[)]', '', re.sub('OT|Final', '', w))).strip().replace("-", ' ')
-                        gm['wscore'] = int(float(re.sub('[^\d]', '', re.sub('[(]\d+[)]', '', re.sub('OT|Final', '', w)))))
-                        gm['end_score'] = (str(gm['wscore'])[-1], str(gm['lscore'])[-1])
-                        gm_list.append(gm)
-
-
-
-                return gm_list
+                            gm['wteam'] = re.sub('[\d]', '', re.sub('[(]\d+[)]', '', re.sub('OT|Final', '', w))).strip().replace("-", ' ')
+                            gm['wscore'] = int(float(re.sub('[^\d]', '', re.sub('[(]\d+[)]', '', re.sub('OT|Final', '', w)))))
+                            gm['end_score'] = (str(gm['wscore'])[-1], str(gm['lscore'])[-1])
+                            gm_list.append(gm)
+                         else:
+                             print('Games havent been played on {} yet'.format(date))
+                             continue
+                    return gm_list
+                except NoSuchElementException:
+                    print('Games havent been played on {} yet'.format(date))

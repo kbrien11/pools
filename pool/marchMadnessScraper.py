@@ -36,9 +36,9 @@ def open_mm_link(i):
                 games = web.find_elements_by_xpath('//table[@class="teams"]')
 
                 gm_list = []
-                try:
-                    for i, game in enumerate(games):
-                         if 'NCAA' in (game.find_element_by_class_name('desc').text) and game.find_element_by_class_name('winner').text:
+                for i, game in enumerate(games):
+                    try:
+                        if 'NCAA' in (game.find_element_by_class_name('desc').text):
                             gm = {}
                             gm['id'] = i
                             gm['date'] = game_date
@@ -52,9 +52,11 @@ def open_mm_link(i):
                             gm['wscore'] = int(float(re.sub('[^\d]', '', re.sub('[(]\d+[)]', '', re.sub('OT|Final', '', w)))))
                             gm['end_score'] = (str(gm['wscore'])[-1], str(gm['lscore'])[-1])
                             gm_list.append(gm)
-                         else:
+                        else:
                              print('Games havent been played on {} yet'.format(date))
                              continue
-                    return gm_list
-                except NoSuchElementException:
-                    print('Games havent been played on {} yet'.format(date))
+                    except NoSuchElementException :
+                        print("error no desc for this game")
+
+                print(gm_list)
+                return gm_list

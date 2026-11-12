@@ -71,7 +71,7 @@ STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 
-
+CORS_ALLOW_CREDENTIALS = True
 ROOT_URLCONF = 'pools.urls'
 
 TEMPLATES = [

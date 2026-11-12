@@ -1,6 +1,8 @@
 import random
 import secrets
 import string
+import logging
+
 
 from decimal import Decimal, InvalidOperation
 
@@ -14,7 +16,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-
+logger = logging.getLogger(__name__)
 from .models import (
     Board,
     Box,
@@ -47,13 +49,21 @@ User = get_user_model()
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def register(request):
+    logger.info("Registration started")
+
     serializer = RegisterSerializer(data=request.data)
 
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+    logger.info("Serializer validated")
+
     user = serializer.save()
+    logger.info("User created: %s", user.id)
     token, _ = Token.objects.get_or_create(user=user)
+    logger.info("Token created")
+
 
     print(user)
     print(token)

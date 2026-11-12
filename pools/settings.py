@@ -32,6 +32,13 @@ DEBUG = False
 ALLOWED_HOSTS = [
     "pools-f8ip.onrender.com",
     "poolboxes.netlify.app",
+    "192.168.1.161",
+        "127.0.0.1",
+        "localhost",
+        "reviewqrapi.onrender.com",
+        "reviewlyft.netlify.app",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
@@ -49,7 +56,8 @@ INSTALLED_APPS = [
     'pool',
     'rest_framework',
     'rest_framework.authtoken',
-    'corsheaders'
+    'corsheaders',
+    'fantasy'
 ]
 CORS_ALLOWED_ORIGINS = [
     "https://poolboxes.netlify.app",

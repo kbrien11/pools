@@ -99,7 +99,8 @@ REST_FRAMEWORK = {
     ],
 }
 
-
+raw_url = config("DATABASE_URL", default=None)
+DATABASES = {"default": dj_database_url.parse(raw_url, conn_max_age=0)}
 DATABASES = {
     "default": dj_database_url.config(
         conn_max_age=600,

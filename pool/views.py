@@ -228,6 +228,8 @@ def pools(request):
             ]
         )
 
+
+
         if board_type == "nfl":
             NFL.objects.create(
                 board_number=board,
@@ -251,14 +253,21 @@ def pools(request):
 
         winning_numbers = list(range(10))
         losing_numbers = list(range(10))
+
         random.shuffle(winning_numbers)
         random.shuffle(losing_numbers)
 
-        GeneratedNumbers.objects.create(
+        print("keith")
+
+        GeneratedNumbers.objects.update_or_create(
             board_pk=board,
-            winning=winning_numbers,
-            losing=losing_numbers,
+            defaults={
+                "winning": winning_numbers,
+                "losing": losing_numbers,
+            },
         )
+        print("keith")
+        print(board)
 
     return Response(
         {

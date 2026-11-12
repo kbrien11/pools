@@ -141,3 +141,16 @@ class ScrapeData(models.Model):
 class MarchMadnessDates(models.Model):
     date = models.DateField(unique=True)
     visited = models.BooleanField(default=False)
+
+class PoolMember(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    board = models.ForeignKey(Board, on_delete=models.CASCADE)
+    joined_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "board"],
+                name="unique_pool_member",
+            )
+        ]

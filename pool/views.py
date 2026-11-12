@@ -1,802 +1,569 @@
-from django.shortcuts import render
-
-from django.contrib.auth.models import User
-from django.contrib.auth.hashers import check_password,make_password
-from rest_framework.views import Response
-from .models import Box,Board
-from rest_framework.decorators import action,api_view
-from .models import Board,Box,NFL,Winnings,MarchMadness,Admin,GeneratedNumbers,MarchMadnessDates
-from rest_framework import viewsets,generics
-from django.contrib.auth import authenticate
-from .marchMadnessScraper import open_mm_link
-from rest_framework.authtoken.models import Token
-from rest_framework import status
 import random
-from .scrape import open_link,pull_scores
-from django.core.mail import send_mail
-import schedule
-import time
-import threading
-from datetime import date
-from dateutil.parser import parse
-from mailjet_rest import Client
-import os
-import environ
-from .serializers import BoardSerializer,UserSerializer,BoxSerialiazer,NFLSerializer,WinningsSerializer,MarchMadnessSerializer,AdminSerializer,GeneratedNumbersSerializer,MarchMadnessDatesSerializer
+import secrets
+import string
 
-api_key = os.environ.get("API_KEY")
-api_secret = os.environ.get("API_SECRET")
+from decimal import Decimal, InvalidOperation
 
-print(api_key,api_secret)
+from django.contrib.auth import authenticate, get_user_model
+from django.db import transaction
+from django.db.models import Sum, Count, Q
+from django.shortcuts import get_object_or_404
 
-mailjet = Client(auth=(api_key, api_secret), version='v3.1')
+from rest_framework import status
+from rest_framework.authtoken.models import Token
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
 
+from .models import (
+    Board,
+    Box,
+    NFL,
+    MarchMadness,
+    Winnings,
+    Admin,
+    GeneratedNumbers,
+)
 
+from .serializers import (
+    BoardSerializer,
+    BoxSerializer,
+    NFLSerializer,
+    MarchMadnessSerializer,
+    WinningsSerializer,
+    AdminSerializer,
+    GeneratedNumbersSerializer,
+    RegisterSerializer,
+    UserSerializer,
+)
 
-
-
-
-
-@api_view(['POST'])
-def createUser(request):
-        password = request.data.get("password")
-        email = request.data.get("email")
-        first_name = request.data.get("first_name")
-        serializer = UserSerializer(data=request.data)
-        print(password)
-        if serializer.is_valid():
-            serializer.save()
-            user = User.objects.filter(username=serializer.data['username']).first()
-            token = Token.objects.get(user=user)
-            print(token)
-            data = {
-                'Messages': [
-                    {
-                        "From": {
-                            "Email": "kbrien11@gmail.com",
-                            "Name": "Keith"
-                        },
-                        "To": [
-                            {
-                                "Email": email,
-                                "Name": first_name
-                            }
-                        ],
-                        "Subject": "Thank you for registering",
-                        "TextPart": "My first Mailjet email",
-                        "HTMLPart": "<h3> Hi, {} thank you for signing up. Feel free to create a league or join an existing one. Goodluck on your boxes".format(str(first_name))
-
-                    }
-                ]
-            }
-            result = mailjet.send.create(data=data)
-            print(result.json)
-            return Response({"data":serializer.data, "token":token.key})
-        else:
-            return Response({"error":"errro"})
+User = get_user_model()
 
 
-@api_view(['GET'])
-def getBoardFromUser(request,token):
-    boxes_list = []
-    codes = []
-    names = []
-    user = Token.objects.get(key = token).user
-    boxes  = Box.objects.filter(username=user).all()
-    box_ser = BoxSerialiazer(boxes,many=True)
-    for board_id in box_ser.data:
-        if board_id['board_number'] in boxes_list:
-            pass
-        else:
-            boxes_list.append(board_id['board_number'])
+# ---------------------------------------------------------
+# AUTHENTICATION
+# ---------------------------------------------------------
 
-    for v in boxes_list:
-        boards = Board.objects.filter(id = v).first()
-        board_ser = BoardSerializer(boards,many=False)
-        name = board_ser.data['name']
-        code = board_ser.data['code']
-        if len(name) >0:
-            codes.append((name))
-        else:
-            codes.append((code))
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def register(request):
+    serializer = RegisterSerializer(data=request.data)
 
-    return Response({"codes":codes,"names":names})
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['POST'])
+    user = serializer.save()
+    token, _ = Token.objects.get_or_create(user=user)
+
+    return Response(
+        {
+            "token": token.key,
+            "user": UserSerializer(user).data,
+        },
+        status=status.HTTP_201_CREATED,
+    )
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
 def login(request):
-    email = request.data.get("email")
-    password = request.data.get("password")
-    user_obj = User.objects.filter(email__iexact=email).first()
-    ser = UserSerializer(user_obj, many=False)
-    print(user_obj)
-    if user_obj:
-        validate_password = check_password(password, ser.data['password'])
-        print(validate_password, password)
-        if validate_password:
-            token = Token.objects.get(user=user_obj)
-            print(token.key)
-            return Response({'token': token.key})
-        else:
-            print("error logging in")
-            return Response({"passwordError": "invalid password"})
-    else:
-        print("email is wrong")
-        return Response({"EmailError": "invalid email"})
-
-
-
-
-def valid_board_name_validator(x):
-    if x.isalnum():
-        print(x)
-        return True
-    else:
-        return False
-
-
-@api_view(['POST'])
-def create_board(request,token):
-    type = request.data.get("type")
-    customize = request.data.get("customize")
-    price = request.data.get("price")
-    print(customize)
-    board_name = request.data.get("name")
-    if not valid_board_name_validator(board_name):
-        return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    else:
-        user = Token.objects.get(key=token).user
-        data = UserSerializer(user, many=False)
-        print(data.data['email'])
-        generate_code = random.randint(100,10000)
-        board = Board(code = generate_code,type=type,name=board_name,box_price=price)
-        print(board.id)
-        print('ceating board')
-        winners_list = []
-        losers_list = []
-        total_pairs = []
-        if board:
-            if type == "football":
-                print("football")
-                price = int(request.data.get("price"))
-                total_price = price*100
-
-                four = int(request.data.get("four"))
-                three = int(request.data.get("three"))
-                two = int(request.data.get("two"))
-                one = int(request.data.get("one"))
-                four_decimail = four/100
-                three_decimail = three / 100
-                two_decimail = two / 100
-                one_decimail = one / 100
-                print(total_price)
-                NFL_table = NFL(four=total_price*four_decimail, three=total_price*three_decimail, two=total_price*two_decimail , one= total_price*one_decimail, board_number=board,box_price=price)
-                if NFL_table.one >=0 and NFL_table.two >=0 and NFL_table.three >=0 and NFL_table.four >=0:
-                    print("inserting into money table")
-                    board.save()
-                    NFL_table.save()
-
-                else:
-                    print("not adding to board table")
-                    return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-            elif type == "basketball":
-                print("basketball")
-                if customize == True:
-                    first_round = int(request.data.get("first_round"))
-                    second_round = int(request.data.get("second_round"))
-                    sweet_sixteen = int(request.data.get("sweet_sixteen"))
-                    elite_eight = int(request.data.get("elite_eight"))
-                    final_four = int(request.data.get("final_four"))
-                    price = int(request.data.get("price"))
-                    championship = int(request.data.get("championship"))
-                    march_madness = MarchMadness(first_round=first_round, second_round=second_round,
-                                                 sweet_sixteen=sweet_sixteen,
-                                                 elite_eight=elite_eight, final_four=final_four, championship=championship,
-                                                 board_number=board,price=price)
-                    if march_madness.first_round >= 0 and march_madness.second_round >= 0 and march_madness.sweet_sixteen >= 0 and march_madness.elite_eight >= 0 and march_madness.final_four >= 0 and march_madness.championship >= 0:
-                        board.save()
-                        march_madness.save()
-
-                    else:
-                        return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-                else:
-                    price = int(request.data.get("price"))
-                    march_madness = MarchMadness(first_round=price *.5, second_round=price *1,
-                                                 sweet_sixteen=price *2,
-                                                 elite_eight=price*4, final_four=price*8, championship=price*20,
-                                                 board_number=board, box_price=price)
-
-                    if march_madness.first_round >= 0 and march_madness.second_round >= 0 and march_madness.sweet_sixteen >= 0 and march_madness.elite_eight >= 0 and march_madness.final_four >= 0 and march_madness.championship >= 0:
-                        board.save()
-                        march_madness.save()
-
-                    else:
-                        return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            print(board)
-            new_admin = Admin(board_number = board,user_pk = user,creator=True)
-            new_admin.save()
-            win = [str(i) for i in range(10)]
-            los = [str(i) for i in range(10)]
-            random.shuffle(win)
-            random.shuffle(los)
-
-            print(data.data['email'])
-            for j in win:
-                winners_list.append(j)
-
-            for i in los:
-                losers_list.append(i)
-
-            first = 0
-            last = len(losers_list)
-
-            while first < last:
-                for num in winners_list:
-                    pair = num, losers_list[first]
-                    total_pairs.append(pair)
-                first += 1
-
-            for i in total_pairs:
-                new_boxes = Box(pair = i,board_number = board)
-
-                if new_boxes:
-                    new_boxes.save()
-                    print( Response(status=status.HTTP_202_ACCEPTED))
-                else:
-                    print(Response(status = status.HTTP_400_BAD_REQUEST))
-
-            data = {
-                'Messages': [
-                    {
-                        "From": {
-                            "Email": "kbrien11@gmail.com",
-                            "Name": "Keith"
-                        },
-                        "To": [
-                            {
-                                "Email": data.data['email'],
-                                "Name": data.data['first_name']
-                            }
-                        ],
-                        "Subject": "Thank you for Creating a new league",
-                        "TextPart": "My first Mailjet email",
-                        "HTMLPart": "<h3> Hi {}, thank you for creating a new board. Feel free to share this code --- {}--- and or link ---https://poolboxes.netlify.app/play--- with your friends.Goodluck on your boxes".format( str(data.data['first_name']),
-                            str(board.code))
-
-                    }
-                ]
-            }
-            result = mailjet.send.create(data=data)
-            print(result.json)
-            new_Numbers = GeneratedNumbers(winning=winners_list,losing=losers_list,board_pk=board.id)
-            new_Numbers.save()
-            new_Numbers.winning
-            return Response({"pairs":total_pairs,"board_nuber":board.id,"winningNumbers":new_Numbers.winning,"losingNumbers":new_Numbers.losing,"code":board.code})
-        else:
-            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-
-@api_view(['POST'])
-def addUserToBox(request,token,box_pk,board_number):
-
-    user = Token.objects.get(key = token).user
-
-    data = UserSerializer(user,many=False)
-    print(data.data['username'])
-    list_box_pk =list(box_pk.split(","))
-    count = 0
-    if user:
-        for pk in list_box_pk:
-            box_data = Box.objects.get(board_number=board_number,id=int(pk))
-
-            serializer = BoxSerialiazer(instance=box_data,data=request.data,many=False,partial=True)
-            if serializer.is_valid():
-
-                if serializer.validated_data.get('user_pk') is None:
-                    serializer.validated_data['user_pk'] =user
-                    serializer.validated_data['username'] =data.data['username']
-                    serializer.validated_data['first_name'] = data.data['first_name']
-
-                    if serializer.validated_data['user_pk'] ==user:
-
-                        serializer.save()
-                        count +=1
-                        print(serializer.validated_data)
-
-
-
-                else:
-                    print("box taken already")
-
-#     send_mail(
-#         'Chosen Boxes',
-#         'Hi {} thank you for choosing {} box(es). Goodluck!'.format(data.data['first_name'],str(count)),
-#         'kbrien11@gmail.com',
-#         [data.data['email']],
-#         fail_silently=False
-#     )
-    return Response({"data":serializer.data})
-
-
-
-@api_view(['GET'])
-def show_board(request,token,board_number):
-    user = Token.objects.get(key=token).user
-    if user:
-        print(user, token)
-        board_data = Box.objects.filter(board_number = board_number).order_by('id')
-        serializer = BoxSerialiazer(board_data, many=True)
-        numbers = GeneratedNumbers.objects.filter(board_pk=board_number).first()
-        numbers_ser = GeneratedNumbersSerializer(numbers, many=False)
-        return Response({"board":serializer.data,"winning":numbers.winning,"losing":numbers.losing})
-
-@api_view(['GET'])
-def game_in_progress(request,board_number):
-    boxes = Box.objects.filter(board_number = board_number).all()
-    for box in boxes:
-        if box.username == "":
-            return Response({"data":True})
-        else:
-            pass
-    return Response({"data":False})
-
-@api_view(['GET'])
-def show_board_with_code(request,code):
-    board_id = Board.objects.filter(code = code).first()
-    if board_id:
-        seriazlier = BoardSerializer(board_id,many = False)
-        board_type = seriazlier.data['type']
-        board_number = seriazlier.data['id']
-        if board_number:
-            numbers = GeneratedNumbers.objects.filter(board_pk=board_number).first()
-
-            numbers_ser = GeneratedNumbersSerializer(numbers,many=False)
-            print(numbers.winning)
-            board_data = Box.objects.filter(board_number=board_number).order_by('id')
-            serializer = BoxSerialiazer(board_data, many=True)
-            return Response({"board": serializer.data,"board_nuber":board_number,"type":board_type,"winning":numbers.winning,"losing":numbers.losing})
-    else:
-        return Response({"error":"error"})
-
-@api_view(['GET'])
-def show_board_with_name(request,name):
-    board_id = Board.objects.filter(name = name).first()
-    if board_id:
-        seriazlier = BoardSerializer(board_id,many = False)
-        board_type = seriazlier.data['type']
-        board_number = seriazlier.data['id']
-        if board_number:
-            numbers = GeneratedNumbers.objects.filter(board_pk=board_number).first()
-            numbers_ser = GeneratedNumbersSerializer(numbers,many=False)
-            board_data = Box.objects.filter(board_number=board_number).order_by('id')
-            serializer = BoxSerialiazer(board_data, many=True)
-            return Response({"board": serializer.data,"board_nuber":board_number,"type":board_type,"winning":numbers.winning,"losing":numbers.losing})
-    else:
-        return Response({"error":"error"})
-    
-@api_view(['GET'])
-def validate_code(request,code):
-    board_id = Board.objects.filter(code=code).first()
-    seriazlier = BoardSerializer(board_id, many=False)
-    board_number = seriazlier.data['code']
-    if board_number:
-        return Response({"code":code,"board":seriazlier.data['id']})
-    else:
-        return Response({"error":"wrong code"})
-
-@api_view(['GET'])
-def validate_name(request,name):
-
-    board_id = Board.objects.filter(name=name).first()
-    seriazlier = BoardSerializer(board_id, many=False)
-    board_number = seriazlier.data['code']
-    if board_number:
-        return Response({"code":name,"board":seriazlier.data['id']})
-    else:
-        return Response({"error":"wrong name"})
-
-@api_view(['GET'])
-def verifyBox(request,token,box_id,board_number):
-    user = Token.objects.filter(key=token).first()
-    print(user)
-    if user:
-        username = Token.objects.get(key=token).user
-        box_data = Box.objects.filter(board_number=board_number).filter(id =box_id).first()
-        if box_data.user_pk is None:
-            return Response({"user":username.username})
-        else:
-            return Response({"userError":"error"})
-    else:
-        return Response({"error": "error"})
-
-@api_view(['GET'])
-def get_user_name(request,pk):
-    user = User.objects.filter(id=pk).first()
-    if user:
-        query_set = UserSerializer(user,many=False)
-        if query_set:
-            print(query_set.data['username'])
-            return Response({"user":query_set.data['username']})
-        else:
-            return Response({"error": "error"})
-
-
-
-@api_view(['GET'])
-def price_per_box(request,board_number):
-    board = Board.objects.filter(id = board_number).first()
-    seriazlier = BoardSerializer(board,many = False)
-    print(seriazlier.data)
-    price = seriazlier.data['box_price']
-    print(price)
-    if price:
-        return Response({"price":price})
-    else:
-        return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-def addMoneyToWinners():
-    winning_pair = {}
-    openLink = open_link()
-    scores = pull_scores(openLink)
-
-
-    boards = Board.objects.all()
-    board_ser = BoardSerializer(boards,many=True)
-    if board_ser:
-        for pk in board_ser.data:
-            monies = NFL.objects.filter(board_number = pk['id']).first()
-            NFL_ser = NFLSerializer(monies,many=False)
-            boxes = Box.objects.filter(board_number = pk['id']).all()
-            box_data_ser = BoxSerialiazer(boxes,many=True)
-            if box_data_ser:
-                for i in scores:
-                    print(i)
-                    if "OT" in i:
-                        print(i["OT"])
-                        print(type(i["OT"]))
-                        winning_pair["four"] = tuple(i["OT"])
-                        winning_pair["one"] = tuple(i['first'])
-                        winning_pair["two"] = tuple(i["second"])
-                        winning_pair["three"] = tuple(i["third"])
-                    elif "2OT" in i:
-                        winning_pair["one"] = tuple(i['first'])
-                        winning_pair["two"] = tuple(i["second"])
-                        winning_pair["three"] = tuple(i["third"])
-                        winning_pair["four"] = tuple(i["2OT"])
-                    else:
-                        winning_pair["one"] = tuple(i['first'])
-                        winning_pair["two"] = tuple(i["second"])
-                        winning_pair["three"] = tuple(i["third"])
-                        winning_pair["four"] = tuple(i["fourth"])
-                    for box in box_data_ser.data:
-                        for k, v in winning_pair.items():
-                            if box['pair'] ==str(v):
-                                box_update = Box.objects.filter(board_number = pk['id'],id=box['id']).first()
-                                if box_update.user_pk is not None:
-                                    box_update.hit = True
-                                    box_update.count +=1
-                                    box_update.save(update_fields=['hit','count'])
-                                    print(k, v, box['pair'], box['id'],box_update.hit,box['username'])
-                                    add_money_to_user = Winnings.objects.filter(user_pk=box['user_pk'],board_pk =box['board_number']).first()
-                                    if NFL_ser.data[k] is not None:
-                                        if add_money_to_user:
-                                            add_money_to_user.balance += NFL_ser.data[k]
-                                            add_money_to_user.save(update_fields=['balance'])
-                                            user = User.objects.filter(pk=box['user_pk']).first()
-                                            print(user)
-                                        else:
-                                            user_obj = User.objects.filter(pk = box['user_pk']).first()
-                                            winner = Winnings(user_pk =  user_obj,balance = NFL_ser.data[k],username=box['username'],board_pk=str(box['board_number']),first_name=box['first_name'])
-                                            winner.save()
-                                    else:
-                                        print("money board is empty")
-                                        pass
-                                else:
-                                    print("board isnt fully filled out")
-                                    pass
-
-                                #        /SEND EMAIL TO NOTIFY USER THEY WON
-                            else:
-                              continue
-
-        print("all board have been scraped ad updated")
-        return
-
-
-def addMoneyToWinnersForMarchMadness():
-    game_dates_list = MarchMadnessDates.objects.all()
-    dates_ser = MarchMadnessDatesSerializer(game_dates_list,many=True)
-    for i in dates_ser.data:
-        print(i)
-        if i['visited'] ==True :
-            print("{} has already been visited".format(i['date']))
-            print("going to the next day")
-            continue
-        else:
-            winning_pair = {}
-            scores = open_mm_link(i['date'])
-            if not scores:
-                print(" no data games on this day {} yet".format(i['date']))
-                continue
-            count = 0
-            scores_pairs = []
-            date_to_update = MarchMadnessDates.objects.filter(id=i['id']).first()
-            date_to_update.visited = True
-            date_to_update.save(update_fields=['visited'])
-            boards = Board.objects.filter(type='basketball').all()
-            board_ser = BoardSerializer(boards,many=True)
-            if board_ser:
-                for pk in board_ser.data:
-                    monies = MarchMadness.objects.filter(board_number = pk['id']).first()
-                    MM_ser = MarchMadnessSerializer(monies,many=False)
-                    boxes = Box.objects.filter(board_number = pk['id']).all()
-                    box_data_ser = BoxSerialiazer(boxes,many=True)
-                    if box_data_ser:
-
-                            for i in scores:
-                                if i['round'] == 'First Round':
-                                  winning_pair["first_round"] = tuple(i['round'])
-
-                                elif i['round'] == 'Second Round':
-                                   winning_pair["second_round"] = tuple(i["round"])
-
-                                elif i['round'] == 'Regional Semifinal':
-                                    winning_pair["sweet_sixteen"] = tuple(i["round"])
-
-                                elif i['round'] == 'Regional Final':
-                                   winning_pair["elite_eight"] = tuple(i["round"])
-
-                                elif i['round'] == 'National Semifinal':
-                                   winning_pair["final_four"] = tuple(i["round"])
-
-                                else:
-                                   winning_pair["championship"] = tuple(i["round"])
-
-
-
-                                for box in box_data_ser.data:
-                                    for k,v in winning_pair.items():
-                                     if box['pair'] == str(i['end_score']):
-                                         count +=1
-                                         print(i['end_score'])
-                                         print(box['pair'],'match',count)
-                                         box_update = Box.objects.filter(board_number = pk['id'],id=box['id']).first()
-                                         if box_update.user_pk is not None:
-                                            box_update.hit = True
-                                            box_update.count +=1
-                                            box_update.save(update_fields=['hit','count'])
-                                            print(winning_pair[k], box['pair'], box['id'],box_update.hit)
-                                            add_money_to_user = Winnings.objects.filter(user_pk=box['user_pk'],board_pk =box['board_number']).first()
-                                            if MM_ser.data[k] is not None:
-                                                if add_money_to_user:
-                                                    add_money_to_user.balance += MM_ser.data[k]
-                                                    add_money_to_user.save(update_fields=['balance'])
-                                                    user = User.objects.filter(pk=box['user_pk']).first()
-                                                    print(user)
-                                                else:
-                                                    user_obj = User.objects.filter(pk = box['user_pk']).first()
-                                                    winner = Winnings(user_pk =  user_obj,balance = MM_ser.data[k],username=box['username'],board_pk=str(box['board_number']),first_name=box['first_name'])
-                                                    winner.save()
-                                            else:
-                                                print("money board is empty")
-                                                pass
-                                         else:
-                                            print("board isnt fully filled out")
-                                            pass
-
-                                        #        /SEND EMAIL TO NOTIFY USER THEY WON
-                                    else:
-                                      continue
-
-
-    print("all board have been scraped ad updated")
-    return
-
-
-@api_view(['POST'])
-def insertDatesForMarchMadness(request):
-    date = request.data.get('date')
-    new_date = MarchMadnessDates(date = date)
-    if new_date:
-        new_date.save()
-        return Response({"date":new_date.date})
-    else:
-        print("error adding {]".format(date))
-
-
-@api_view(['GET'])
-def leaderboard(request,board_pk):
-    output = []
-    boxes = Winnings.objects.filter(board_pk = str(board_pk)).order_by('-balance').all()
-    boxes_ser = WinningsSerializer(boxes,many=True)
-    for box in boxes_ser.data:
-        if box['balance'] >0:
-            output.append(box)
-    print(output)
-    return Response({'data':output[:5]})
-
-@api_view(['GET'])
-def leaderboardTotal(request,board_pk):
-    output = []
-    boxes = Winnings.objects.filter(board_pk = str(board_pk)).order_by('-balance').all()
-    boxes_ser = WinningsSerializer(boxes,many=True)
-    for box in boxes_ser.data:
-        if box['balance'] >0:
-            output.append(box)
-    print(output)
-    return Response({'data':output})
-
-@api_view(['GET'])
-def validate_creator(request,token,board_number):
-    user_pk = Token.objects.filter(key=token).first()
-
-    if user_pk is not None:
-        print(user_pk.user_id)
-        creator = Admin.objects.filter(board_number = board_number,user_pk = user_pk.user_id).first()
-        if creator:
-            serializer = AdminSerializer(creator,many=False)
-            print(serializer.data)
-            return Response({"data":serializer.data})
-        else:
-            return Response({"error":"error"})
-    else:
-        return Response({"error2": "error2"})
-
-@api_view(['get'])
-def get_money_owed(request,boardPk):
-    output = {}
-    board = Board.objects.filter(id=boardPk).first()
-    board_ser = BoardSerializer(board,many=False)
-    amount = board_ser.data['box_price']
-    boxes = Box.objects.filter(board_number = boardPk).all()
-    boxes_ser = BoxSerialiazer(boxes,many = True)
-    if boxes_ser:
-            for i in boxes_ser.data:
-                if i['username'] != "":
-                    if i['username'] in output:
-                        output[i['username']] += int(amount)
-                    else:
-                        output[i['username']] = int(amount)
-
-                else:
-                    print("{} has has not been selected yet".format(i['id']))
-                    continue
-            sorted_d = sorted(output.items(), key = lambda x: x[1], reverse = True)
-            return Response({"data":output})
-
-    else:
-        return Response({"error":"error"})
-
-
-@api_view(['GET'])
-def totalBoxesLeft(request,board_number):
-    count =0
-    boxes = Box.objects.filter(board_number = board_number).all()
-    boxes_ser = BoxSerialiazer(boxes,many=True)
-
-    if boxes_ser:
-        for i in boxes_ser.data:
-            print(i)
-            if i['username'] == "":
-                count += 1
-            else:
-                print("{} taken".format(i['id']))
-        return Response({"count":count})
-    else:
-        return Response({"error":"errror"})
-
-# @api_view(['POST'])
-# def share_code(request):
-#     board_pk = request.data.get('board_pk')
-#     email = request.data.get('email')
-#     print(board_pk,email)
-#     board = Board.objects.filter(id=board_pk).first()
-#     board_ser = BoardSerializer(board,many=False)
-#     code = board_ser.data['code']
-#     print(code)
-#     user_to_email = User.objects.filter(email=email).first()
-#     user_ser = UserSerializer(user_to_email,many=False)
-#     if email:
-#         if code:
-#            if user_ser:
-# #                 send_mail(
-# #                     'Code to join my leage',
-# #                     'Hi {}, the code to join the leage is {}'.format(
-# #                         user_ser .data['username'], code),
-# #                     "kbrien11@gmail.com",
-# #                     [email],
-# #                     fail_silently=False
-# #                 )
-#                 print("hi")
-#            else:
-#                  print("hi")
-# #                 send_mail(
-# #                     'Code to join my leage',
-# #                     'Hi there, the code to join the league is {}'.format(
-# #                          code),
-# #                     "kbrien11@gmail.com",
-# #                     [email],
-# #                     fail_silently=False
-# #                 )
-#         else:
-#             print("code error")
-#     return Response({"data":code})
-
-
-# def send_email_to_winners():
-#     day = date.today()
-#     check_date = ["2021-12-29","2021-12-30","2021-12-31","2021-12-28"]
-#     if str(day) in check_date:
-#         users = Winnings.objects.all()
-#         ser = WinningsSerializer(users,many=True)
-#         print("sending email script")
-#         for i in ser.data:
-#             email_user = User.objects.filter(username=i['username']).first()
-#             email_ser = UserSerializer(email_user,many=False)
-#             if email_ser.data['email']:
-#                 print(email_ser.data['email'])
-#                 send_mail(
-#                     'Box hit',
-#                     'Hi {}, your total balance/winning is {}'.format(
-#                         email_ser.data['username'], i['balance']),
-#                     "kbrien11@gmail.com",
-#                     ["moneyman92m@yahoo.com"],
-#                     # [email_ser.data['email']],
-#                     fail_silently=False
-#                 )
-#             else:
-#                 print(i['balance'],i['username'])
-#     else:
-#         print("wrong day")
-#         return
-
-
-def get_print():
-    day = date.today()
-    check_date = "2021-12-28"
-    if str(day) == check_date:
-        print(day)
-    else:
-        print("wrong day")
-
-def run_continuously(interval=1):
-    """Continuously run, while executing pending jobs at each
-    elapsed time interval.
-    @return cease_continuous_run: threading. Event which can
-    be set to cease continuous run. Please note that it is
-    *intended behavior that run_continuously() does not run
-    missed jobs*. For example, if you've registered a job that
-    should run every minute and you set a continuous run
-    interval of one hour then your job won't be run 60 times
-    at each interval but only once.
+    email = request.data.get("email", "").strip().lower()
+    password = request.data.get("password", "")
+
+    if not email or not password:
+        return Response(
+            {"error": "Email and password are required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    user = User.objects.filter(email__iexact=email).first()
+
+    if user is None:
+        return Response(
+            {"error": "Invalid email or password."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    authenticated_user = authenticate(
+        request,
+        username=user.get_username(),
+        password=password,
+    )
+
+    if authenticated_user is None:
+        return Response(
+            {"error": "Invalid email or password."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    token, _ = Token.objects.get_or_create(user=authenticated_user)
+
+    return Response(
+        {
+            "token": token.key,
+            "user": UserSerializer(authenticated_user).data,
+        }
+    )
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def logout(request):
+    request.auth.delete()
+    return Response({"message": "Logged out successfully."})
+
+
+# ---------------------------------------------------------
+# HELPERS
+# ---------------------------------------------------------
+
+def user_is_board_admin(user, board):
+    return Admin.objects.filter(
+        user_pk=user,
+        board_number=board,
+    ).exists()
+
+
+def user_is_board_member(user, board):
+    return (
+        user_is_board_admin(user, board)
+        or Box.objects.filter(
+            board_number=board,
+            user_pk=user,
+        ).exists()
+    )
+
+
+def generate_board_code():
     """
-    cease_continuous_run = threading.Event()
+    Generate a unique numeric board code.
+    """
+    for _ in range(20):
+        code = random.randint(1000, 99999)
 
-    class ScheduleThread(threading.Thread):
-        @classmethod
-        def run(cls):
-            while not cease_continuous_run.is_set():
-                schedule.run_pending()
-                time.sleep(interval)
+        if not Board.objects.filter(code=code).exists():
+            return code
 
-    continuous_thread = ScheduleThread()
-    continuous_thread.start()
-    return cease_continuous_run
-
-
-
-
-# Start the background thread
-stop_run_continuously = run_continuously()
-
-# schedule.every(5).seconds.until("2021-12-28 11:45").do(get_print)
-# schedule.every(30).seconds.until("2021-12-28 11:55").do(send_email_to_winners)
-schedule.every().tuesday.at("15:30").do(addMoneyToWinners)
+    # Fallback in the unlikely event of repeated collisions.
+    while True:
+        code = int("".join(secrets.choice(string.digits) for _ in range(8)))
+        if not Board.objects.filter(code=code).exists():
+            return code
 
 
-# Do some other things...
-time.sleep(1)
+def get_board_boxes(board):
+    return Box.objects.filter(board_number=board).select_related("user_pk")
 
 
+# ---------------------------------------------------------
+# BOARDS / POOLS
+# ---------------------------------------------------------
+
+@api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
+def pools(request):
+    if request.method == "GET":
+        admin_board_ids = Admin.objects.filter(
+            user_pk=request.user
+        ).values_list("board_number_id", flat=True)
+
+        claimed_board_ids = Box.objects.filter(
+            user_pk=request.user
+        ).values_list("board_number_id", flat=True)
+
+        board_ids = set(admin_board_ids) | set(claimed_board_ids)
+
+        boards = Board.objects.filter(id__in=board_ids).distinct()
+
+        return Response(BoardSerializer(boards, many=True).data)
+
+    name = request.data.get("name", "").strip()
+    board_type = request.data.get("type", "").strip().lower()
+    box_price = request.data.get("box_price")
+
+    if not name:
+        return Response(
+            {"error": "A board name is required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if board_type not in ["nfl", "marchmadness"]:
+        return Response(
+            {"error": "Type must be 'nfl' or 'marchmadness'."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        box_price = Decimal(str(box_price))
+        if box_price < 0:
+            raise InvalidOperation
+    except (InvalidOperation, TypeError, ValueError):
+        return Response(
+            {"error": "A valid non-negative box_price is required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    with transaction.atomic():
+        board = Board.objects.create(
+            name=name,
+            type=board_type,
+            box_price=box_price,
+            code=generate_board_code(),
+        )
+
+        Admin.objects.create(
+            user_pk=request.user,
+            board_number=board,
+            creator=True,
+        )
+
+        # Create all 100 possible squares: 00 through 99.
+        Box.objects.bulk_create(
+            [
+                Box(
+                    board_number=board,
+                    pair=f"{number:02d}",
+                )
+                for number in range(100)
+            ]
+        )
+
+        if board_type == "nfl":
+            NFL.objects.create(
+                board_number=board,
+                box_price=box_price,
+                one=request.data.get("one", 0),
+                two=request.data.get("two", 0),
+                three=request.data.get("three", 0),
+                four=request.data.get("four", 0),
+            )
+        else:
+            MarchMadness.objects.create(
+                board_number=board,
+                box_price=box_price,
+                first_round=request.data.get("first_round", 0),
+                second_round=request.data.get("second_round", 0),
+                sweet_sixteen=request.data.get("sweet_sixteen", 0),
+                elite_eight=request.data.get("elite_eight", 0),
+                final_four=request.data.get("final_four", 0),
+                championship=request.data.get("championship", 0),
+            )
+
+        winning_numbers = list(range(10))
+        losing_numbers = list(range(10))
+        random.shuffle(winning_numbers)
+        random.shuffle(losing_numbers)
+
+        GeneratedNumbers.objects.create(
+            board_pk=board,
+            winning=winning_numbers,
+            losing=losing_numbers,
+        )
+
+    return Response(
+        {
+            "board": BoardSerializer(board).data,
+            "boxes": BoxSerializer(get_board_boxes(board), many=True).data,
+            "winning_numbers": winning_numbers,
+            "losing_numbers": losing_numbers,
+        },
+        status=status.HTTP_201_CREATED,
+    )
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def pool_detail(request, pool_id):
+    board = get_object_or_404(Board, id=pool_id)
+
+    if not user_is_board_member(request.user, board):
+        return Response(
+            {"error": "You do not have access to this board."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    return Response(BoardSerializer(board).data)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def join_pool(request):
+    code = request.data.get("code")
+
+    if not code:
+        return Response(
+            {"error": "A board code is required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    board = Board.objects.filter(code=code).first()
+
+    if board is None:
+        return Response(
+            {"error": "Board not found."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    # A user becomes a member when they claim a box.
+    # This endpoint validates the code and returns the board.
+    return Response(
+        {
+            "board": BoardSerializer(board).data,
+            "remaining_boxes": Box.objects.filter(
+                board_number=board,
+                user_pk__isnull=True,
+            ).count(),
+        }
+    )
+
+
+# ---------------------------------------------------------
+# BOXES
+# ---------------------------------------------------------
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def pool_boxes(request, pool_id):
+    board = get_object_or_404(Board, id=pool_id)
+
+    if not user_is_board_member(request.user, board):
+        return Response(
+            {"error": "You do not have access to this board."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    boxes = get_board_boxes(board)
+
+    return Response(BoxSerializer(boxes, many=True).data)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def claim_boxes(request, pool_id):
+    board = get_object_or_404(Board, id=pool_id)
+
+    box_ids = request.data.get("box_ids", [])
+
+    if not isinstance(box_ids, list) or not box_ids:
+        return Response(
+            {"error": "Provide a non-empty box_ids list."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if len(box_ids) != len(set(box_ids)):
+        return Response(
+            {"error": "Duplicate box IDs were provided."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    with transaction.atomic():
+        # Lock the requested rows so simultaneous claims cannot
+        # successfully claim the same boxes.
+        boxes = list(
+            Box.objects.select_for_update().filter(
+                id__in=box_ids,
+                board_number=board,
+            )
+        )
+
+        if len(boxes) != len(box_ids):
+            return Response(
+                {"error": "One or more boxes were not found on this board."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if any(box.user_pk_id is not None for box in boxes):
+            return Response(
+                {"error": "One or more boxes have already been claimed."},
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        for box in boxes:
+            box.user_pk = request.user
+            box.username = request.user.username
+            box.first_name = request.user.first_name
+
+        Box.objects.bulk_update(
+            boxes,
+            ["user_pk", "username", "first_name"],
+        )
+
+    return Response(
+        {
+            "message": "Boxes claimed successfully.",
+            "boxes": BoxSerializer(boxes, many=True).data,
+        }
+    )
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def verify_box(request, pool_id, box_id):
+    board = get_object_or_404(Board, id=pool_id)
+
+    box = get_object_or_404(
+        Box,
+        id=box_id,
+        board_number=board,
+    )
+
+    return Response(
+        {
+            "available": box.user_pk_id is None,
+            "box": BoxSerializer(box).data,
+        }
+    )
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def remaining_boxes(request, pool_id):
+    board = get_object_or_404(Board, id=pool_id)
+
+    if not user_is_board_member(request.user, board):
+        return Response(
+            {"error": "You do not have access to this board."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    remaining = Box.objects.filter(
+        board_number=board,
+        user_pk__isnull=True,
+    ).count()
+
+    return Response({"remaining_boxes": remaining})
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def pool_status(request, pool_id):
+    board = get_object_or_404(Board, id=pool_id)
+
+    if not user_is_board_member(request.user, board):
+        return Response(
+            {"error": "You do not have access to this board."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    total = Box.objects.filter(board_number=board).count()
+    claimed = Box.objects.filter(
+        board_number=board,
+        user_pk__isnull=False,
+    ).count()
+
+    return Response(
+        {
+            "total_boxes": total,
+            "claimed_boxes": claimed,
+            "remaining_boxes": total - claimed,
+            "game_in_progress": claimed > 0,
+            "is_full": total > 0 and claimed == total,
+        }
+    )
+
+
+# ---------------------------------------------------------
+# LEADERBOARD / WINNINGS
+# ---------------------------------------------------------
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def leaderboard(request, pool_id):
+    board = get_object_or_404(Board, id=pool_id)
+
+    if not user_is_board_member(request.user, board):
+        return Response(
+            {"error": "You do not have access to this board."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    winnings = Winnings.objects.filter(
+        board_pk=board,
+    ).select_related("user_pk").order_by("-balance")
+
+    return Response(WinningsSerializer(winnings, many=True).data)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def user_winnings(request, pool_id):
+    board = get_object_or_404(Board, id=pool_id)
+
+    winnings = Winnings.objects.filter(
+        board_pk=board,
+        user_pk=request.user,
+    )
+
+    return Response(WinningsSerializer(winnings, many=True).data)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def money_owed(request, pool_id):
+    board = get_object_or_404(Board, id=pool_id)
+
+    if not user_is_board_admin(request.user, board):
+        return Response(
+            {"error": "Only board admins can view this information."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    total_owed = Box.objects.filter(
+        board_number=board,
+        user_pk__isnull=False,
+    ).aggregate(total=Sum("balance"))["total"] or Decimal("0.00")
+
+    return Response({"money_owed": str(total_owed)})
+
+
+# ---------------------------------------------------------
+# BOARD ADMIN / CONFIGURATION
+# ---------------------------------------------------------
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def validate_creator(request, pool_id):
+    board = get_object_or_404(Board, id=pool_id)
+
+    return Response(
+        {"is_creator": Admin.objects.filter(
+            user_pk=request.user,
+            board_number=board,
+            creator=True,
+        ).exists()}
+    )
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_board_numbers(request, pool_id):
+    board = get_object_or_404(Board, id=pool_id)
+
+    if not user_is_board_member(request.user, board):
+        return Response(
+            {"error": "You do not have access to this board."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    numbers = get_object_or_404(GeneratedNumbers, board_pk=board)
+
+    return Response(GeneratedNumbersSerializer(numbers).data)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_board_payout(request, pool_id):
+    board = get_object_or_404(Board, id=pool_id)
+
+    if not user_is_board_member(request.user, board):
+        return Response(
+            {"error": "You do not have access to this board."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    if board.type == "nfl":
+        payout = get_object_or_404(NFL, board_number=board)
+        return Response(NFLSerializer(payout).data)
+
+    payout = get_object_or_404(MarchMadness, board_number=board)
+    return Response(MarchMadnessSerializer(payout).data)

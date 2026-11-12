@@ -1,35 +1,78 @@
-from django.urls import path,include
+from django.urls import path
 from . import views
-from rest_framework.authtoken.views import obtain_auth_token
-
-
-
-
 
 
 urlpatterns = [
-    path('create_user', views.createUser , name = "create-user"),
-    path('login' ,views.login ),
-    path('create_board/<token>' , views.create_board),
-    path('addUserToBoard/<token>/<box_pk>/<board_number>' , views.addUserToBox),
-    path('show_board/<token>/<board_number>' , views.show_board),
-    path('verifyBox/<token>/<box_id>/<board_number>', views.verifyBox),
-    path('show_board_with_code/<code>', views.show_board_with_code),
-    path('show_board_with_name/<name>', views.show_board_with_name),
-    path('validate_code/<code>',views.validate_code),
-    path('validateName/<name>',views.validate_name),
-    path('get_user_name/<pk>',views.get_user_name),
-    path('leaderboard/<board_pk>',views.leaderboard),
-    path('leaderboardTotal/<board_pk>', views.leaderboardTotal),
-    path('validate_creator/<token>/<board_number>', views.validate_creator),
-    path('userboard/<token>',views.getBoardFromUser),
-    path('game_in_progress/<board_number>',views.game_in_progress),
-    path('getPriceOfBox/<board_number>',views.price_per_box),
-    path('addDate',views.insertDatesForMarchMadness),
-    path('moneyOwed/<boardPk>', views.get_money_owed),
-    path('totalBoxes/<board_number>',views.totalBoxesLeft)
+    # Authentication
+    path("auth/register/", views.register, name="register"),
+    path("auth/login/", views.login, name="login"),
+    path("auth/logout/", views.logout, name="logout"),
 
+    # Pools / boards
+    path("pools/", views.pools, name="pools"),
+    path("pools/<int:pool_id>/", views.pool_detail, name="pool-detail"),
+    path("pools/join/", views.join_pool, name="join-pool"),
 
+    # Boxes
+    path(
+        "pools/<int:pool_id>/boxes/",
+        views.pool_boxes,
+        name="pool-boxes",
+    ),
+    path(
+        "pools/<int:pool_id>/boxes/claim/",
+        views.claim_boxes,
+        name="claim-boxes",
+    ),
+    path(
+        "pools/<int:pool_id>/boxes/<int:box_id>/verify/",
+        views.verify_box,
+        name="verify-box",
+    ),
+    path(
+        "pools/<int:pool_id>/boxes/remaining/",
+        views.remaining_boxes,
+        name="remaining-boxes",
+    ),
 
+    # Board status
+    path(
+        "pools/<int:pool_id>/status/",
+        views.pool_status,
+        name="pool-status",
+    ),
 
+    # Leaderboard / winnings
+    path(
+        "pools/<int:pool_id>/leaderboard/",
+        views.leaderboard,
+        name="leaderboard",
+    ),
+    path(
+        "pools/<int:pool_id>/winnings/",
+        views.user_winnings,
+        name="user-winnings",
+    ),
+    path(
+        "pools/<int:pool_id>/money-owed/",
+        views.money_owed,
+        name="money-owed",
+    ),
+
+    # Board configuration
+    path(
+        "pools/<int:pool_id>/creator/",
+        views.validate_creator,
+        name="validate-creator",
+    ),
+    path(
+        "pools/<int:pool_id>/numbers/",
+        views.get_board_numbers,
+        name="board-numbers",
+    ),
+    path(
+        "pools/<int:pool_id>/payout/",
+        views.get_board_payout,
+        name="board-payout",
+    ),
 ]

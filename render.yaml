@@ -1,9 +1,9 @@
 services:
   - type: web
-    name: reviewQRApi
+    name: pools
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn qrreviews.wsgi:application
+    startCommand: gunicorn pools.wsgi:application
     envVars:
       - key: DJANGO_SETTINGS_MODULE
         value: pools.settings

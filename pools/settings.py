@@ -30,7 +30,10 @@ SECRET_KEY = 'django-insecure-52#8)ydnbh(q-8kyt0_x5piqx(@e!__llk5h6w4tk(8kn-xuk!
 DEBUG = False
 
 ALLOWED_HOSTS = ["https://pools.onrender.com/"]
-
+CSRF_TRUSTED_ORIGINS = [
+    "https://pools.onrender.com",
+    "https://*.pools.onrender.com",
+]
 
 # Application definition
 
@@ -100,12 +103,8 @@ REST_FRAMEWORK = {
 
 raw_url = config("DATABASE_URL", default=None)
 DATABASES = {"default": dj_database_url.parse(raw_url, conn_max_age=0)}
-DATABASES = {
-    "default": dj_database_url.config(
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
-}
+
+
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators

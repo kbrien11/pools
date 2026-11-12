@@ -1,4 +1,4 @@
-web: gunicorn pools.wsgi
+web: gunicorn gunicorn pools.wsgi:application
 
 
 

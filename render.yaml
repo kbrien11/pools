@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: reviewQRApi
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn qrreviews.wsgi:application
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: pools.settings
+      - key: PYTHONPATH
+        value: .
+      - key: SECRET_KEY
+        value: django-insecure-52#8)ydnbh(q-8kyt0_x5piqx(@e!__llk5h6w4tk(8kn-xuk!
+      - key: DATABASE_URL
+        value: "postgresql://neondb_owner:npg_sZq9BpLX5zCn@ep-still-moon-bdnweaus-pooler.c-8.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+
+

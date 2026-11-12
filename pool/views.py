@@ -55,6 +55,9 @@ def register(request):
     user = serializer.save()
     token, _ = Token.objects.get_or_create(user=user)
 
+    print(user)
+    print(token)
+
     return Response(
         {
             "token": token.key,

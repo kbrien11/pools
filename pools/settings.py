@@ -29,12 +29,14 @@ SECRET_KEY = 'django-insecure-52#8)ydnbh(q-8kyt0_x5piqx(@e!__llk5h6w4tk(8kn-xuk!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ["https://pools.onrender.com/"]
-CSRF_TRUSTED_ORIGINS = [
-    "https://pools.onrender.com",
-    "https://*.pools.onrender.com",
+ALLOWED_HOSTS = [
+    "pools-f8ip.onrender.com",
+    "poolboxes.netlify.app",
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://poolboxes.netlify.app",
+]
 # Application definition
 
 INSTALLED_APPS = [
@@ -48,6 +50,9 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders'
+]
+CORS_ALLOWED_ORIGINS = [
+    "https://poolboxes.netlify.app",
 ]
 CORS_ORIGIN_ALLOW_ALL = True
 MIDDLEWARE = [
@@ -64,7 +69,6 @@ MIDDLEWARE = [
 
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = ["127.0.0.1", "localhost","https://pools.onrender.com/"]
 
 render_host = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
 if render_host:
